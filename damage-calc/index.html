@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>妖怪ウォッチバスターズ ダメージ計算機</title>
+    <title>妖怪ウォッチバスターズ ダメージ計算サイト</title>
     <style>
         body { font-family: sans-serif; padding: 20px; background-color: #fff9e6; color: #333; display: flex; justify-content: center; }
         .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; box-sizing: border-box; }
@@ -51,23 +51,10 @@
         .detail-table th { background-color: #f2f2f2; position: sticky; top: 0; }
         .detail-table tr:nth-child(even) { background-color: #fafafa; }
 
-        /* 追加したフッター（クレジット）のスタイル */
-        .footer-credits {
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px solid #eee;
-            font-size: 11px;
-            color: #888;
-            text-align: center;
-            line-height: 1.6;
-        }
-        .footer-credits a {
-            color: #0066cc;
-            text-decoration: none;
-        }
-        .footer-credits a:hover {
-            text-decoration: underline;
-        }
+        /* フッター（クレジット）のスタイル */
+        .footer-credits { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; font-size: 11px; color: #888; text-align: center; line-height: 1.6; }
+        .footer-credits a { color: #0066cc; text-decoration: none; }
+        .footer-credits a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -120,7 +107,7 @@
         <h2>3. クリティカル</h2>
         <div class="input-group">
             <label for="crit-super">超クリティカルの数:</label>
-            <input type="number" id="crit-super" value="0" min="0">
+            <input type="number" id="crit-super" value="" min="0">
         </div>
         
         <div class="dynamic-container">
@@ -170,6 +157,40 @@
             </div>
         </div>
 
+        <div style="margin-top: 20px; padding: 15px; background: #fffdf4; border: 1px solid #ffe8b3; border-radius: 10px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #b26a00; border-bottom: 1px solid #ffe8b3; padding-bottom: 5px;">特定ダメージの発生確率</h3>
+            
+            <div class="input-group" style="margin-bottom: 10px;">
+                <label>指定値【以上】が出る確率:</label>
+                <div class="input-wrap">
+                    <input type="number" id="calc-above-input" value="" style="width: 75px;" oninput="updateTargetProbabilities()">
+                    <span class="suffix" style="font-weight: bold; color: #d9534f; margin-left: 10px;"><span id="calc-above-res">-</span> %</span>
+                </div>
+            </div>
+
+            <details style="margin-top: 10px; border-top: 1px dashed #ffe8b3; padding-top: 10px;">
+                <summary style="font-size: 13px; color: #8a6d3b; cursor: pointer;">▶ 範囲指定・【以下】の確率を調べる</summary>
+                
+                <div class="input-group" style="margin-top: 10px; margin-bottom: 10px;">
+                    <label>指定値【以下】が出る確率:</label>
+                    <div class="input-wrap">
+                        <input type="number" id="calc-below-input" value="" style="width: 75px;" oninput="updateTargetProbabilities()">
+                        <span class="suffix" style="font-weight: bold; color: #0066cc; margin-left: 10px;"><span id="calc-below-res">-</span> %</span>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 0;">
+                    <label>指定【範囲内】が出る確率:</label>
+                    <div class="input-wrap">
+                        <input type="number" id="calc-range-min" value="" style="width: 60px;" oninput="updateTargetProbabilities()">
+                        <span style="margin: 0 3px;">〜</span>
+                        <input type="number" id="calc-range-max" value="" style="width: 60px;" oninput="updateTargetProbabilities()">
+                        <span class="suffix" style="font-weight: bold; color: #5cb85c; margin-left: 10px;"><span id="calc-range-res">-</span> %</span>
+                    </div>
+                </div>
+            </details>
+        </div>
+
         <details>
             <summary>▶ 詳しく表示（確率分布表）</summary>
             <div class="scroll-area">
@@ -192,6 +213,10 @@
     </div>
 
     <script>
+        // 確率計算用にデータを一時保持するグローバル変数
+        let globalDamageWeights = {};
+        let globalLoopCount = 0;
+
         // --- 行の動的追加ロジック ---
         function addBuffRow(type) {
             const container = document.getElementById(type + '-buff-list');
@@ -380,8 +405,9 @@
             document.getElementById('p-crit-normal').textContent = d100.crit;
             document.getElementById('p-crit-max').textContent = d105.crit;
 
-            let damageWeights = {};
-            let loopCount = 0;
+            // 確率データのクリアと再集計
+            globalDamageWeights = {};
+            globalLoopCount = 0;
             
             let w_normal = (100 - critRate) / 100;
             let w_crit = critRate / 100;
@@ -392,27 +418,57 @@
                 
                 if (w_normal > 0) {
                     let dNorm = clampDamage(baseDmg, unlock);
-                    damageWeights[dNorm] = (damageWeights[dNorm] || 0) + w_normal;
+                    globalDamageWeights[dNorm] = (globalDamageWeights[dNorm] || 0) + w_normal;
                 }
                 if (w_crit > 0) {
                     let dCrit = clampDamage(Math.floor(baseDmg * critModifier), unlock);
-                    damageWeights[dCrit] = (damageWeights[dCrit] || 0) + w_crit;
+                    globalDamageWeights[dCrit] = (globalDamageWeights[dCrit] || 0) + w_crit;
                 }
-                loopCount++;
+                globalLoopCount++;
             }
 
-            let sortedDamages = Object.keys(damageWeights).map(Number).sort((x, y) => x - y);
+            let sortedDamages = Object.keys(globalDamageWeights).map(Number).sort((x, y) => x - y);
             let tableHtml = "";
 
             sortedDamages.forEach(dmg => {
-                let weight = damageWeights[dmg];
-                let percentage = ((weight / loopCount) * 100).toFixed(3);
+                let weight = globalDamageWeights[dmg];
+                let percentage = ((weight / globalLoopCount) * 100).toFixed(3);
                 if (parseFloat(percentage) > 0) {
                     tableHtml += `<tr><td>${dmg}</td><td>${percentage}%</td></tr>`;
                 }
             });
 
             document.getElementById('detail-list').innerHTML = tableHtml;
+
+            // シミュレーター数値を現在のステータスに合わせて再計算
+            updateTargetProbabilities();
+        }
+
+        // ★★★ ピンポイント確率シミュレーション用関数 ★★★
+        function updateTargetProbabilities() {
+            if (!globalLoopCount) return;
+
+            const aboveVal = Number(document.getElementById('calc-above-input').value);
+            const belowVal = Number(document.getElementById('calc-below-input').value);
+            const rangeMin = Number(document.getElementById('calc-range-min').value);
+            const rangeMax = Number(document.getElementById('calc-range-max').value);
+
+            let weightAbove = 0;
+            let weightBelow = 0;
+            let weightRange = 0;
+
+            Object.keys(globalDamageWeights).forEach(dmgStr => {
+                const dmg = Number(dmgStr);
+                const weight = globalDamageWeights[dmgStr];
+
+                if (dmg >= aboveVal) weightAbove += weight;
+                if (dmg <= belowVal) weightBelow += weight;
+                if (dmg >= rangeMin && dmg <= rangeMax) weightRange += weight;
+            });
+
+            document.getElementById('calc-above-res').textContent = ((weightAbove / globalLoopCount) * 100).toFixed(3);
+            document.getElementById('calc-below-res').textContent = ((weightBelow / globalLoopCount) * 100).toFixed(3);
+            document.getElementById('calc-range-res').textContent = ((weightRange / globalLoopCount) * 100).toFixed(3);
         }
 
         calculateAll();
