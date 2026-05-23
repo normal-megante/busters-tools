@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>妖怪ウォッチバスターズ ダメージ計算機</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #fff9e6; color: #333; display: flex; justify-content: center; }
+        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; box-sizing: border-box; }
+        h1 { text-align: center; font-size: 22px; color: #d9534f; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #d9534f; padding-bottom: 10px; }
+        h2 { font-size: 16px; color: #333; border-left: 4px solid #ff9800; padding-left: 8px; margin-top: 20px; margin-bottom: 10px; }
+        
+        .input-group { margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .input-group.radio-group { justify-content: flex-start; gap: 15px; }
+        label { font-weight: bold; font-size: 14px; }
+        .input-wrap { display: flex; align-items: center; }
+        .prefix { margin-right: 4px; font-weight: bold; }
+        .suffix { margin-left: 4px; font-size: 14px; }
+        input[type="number"] { width: 90px; padding: 5px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; text-align: right; }
+        
+        /* 動的追加エリアのスタイル */
+        .dynamic-container { background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px dashed #ccc; margin-bottom: 15px; }
+        .dynamic-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .dynamic-row:last-child { margin-bottom: 0; }
+        select { padding: 5px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; width: 180px; }
+        .btn-add { background: #5cb85c; color: white; border: none; padding: 4px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-del { background: #d9534f; color: white; border: none; padding: 4px 8px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
+        
+        /* チェックボックス */
+        .checkbox-group { margin: 15px 0; display: flex; align-items: center; gap: 5px; font-weight: bold; color: #cc0000; }
+
+        button.btn-calc { width: 100%; padding: 12px; font-size: 18px; background-color: #ff9800; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; box-shadow: 0 3px 0 #e68a00; }
+        button.btn-calc:active { transform: translateY(3px); box-shadow: none; }
+        
+        /* 結果表示 */
+        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eee; }
+        .result-block { background: #fff5f5; padding: 10px; border-radius: 8px; border: 1px solid #ffe0e0; }
+        .result-block.crit { background: #f5faff; border: 1px solid #e0f0ff; }
+        .result-block h3 { margin: 0 0 8px 0; font-size: 14px; text-align: center; color: #c9302c; }
+        .result-block.crit h3 { color: #0066cc; }
+        .result-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+        .result-item.main { font-size: 16px; font-weight: bold; color: #d9534f; border-top: 1px dashed #ffcccc; padding-top: 3px; }
+        .result-block.crit .result-item.main { color: #0066cc; border-top: 1px dashed #cce5ff; }
+        
+        /* 詳しく表示 */
+        details { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
+        summary { font-weight: bold; color: #0066cc; cursor: pointer; font-size: 16px; }
+        .scroll-area { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; margin-top: 10px; }
+        .detail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .detail-table th, .detail-table td { border-bottom: 1px solid #eee; padding: 6px; text-align: center; }
+        .detail-table th { background-color: #f2f2f2; position: sticky; top: 0; }
+        .detail-table tr:nth-child(even) { background-color: #fafafa; }
+
+        /* 追加したフッター（クレジット）のスタイル */
+        .footer-credits {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .footer-credits a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .footer-credits a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <h1>バスターズ ダメージ計算機</h1>
+        
+        <h2>1. 攻撃力関係</h2>
+        <div class="input-group">
+            <label for="stat-power">ちから:</label>
+            <input type="number" id="stat-power" value="">
+        </div>
+        <div class="input-group">
+            <label for="stat-magic">ようりょく:</label>
+            <input type="number" id="stat-magic" value="">
+        </div>
+        
+        <div class="dynamic-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:bold; color:#666;">攻撃力のバフ・デバフ</span>
+                <button class="btn-add" onclick="addBuffRow('attack')">＋ 追加</button>
+            </div>
+            <div id="attack-buff-list"></div>
+        </div>
+
+        <div class="input-group radio-group">
+            <label><input type="radio" name="move-type" value="physical" checked> 物理</label>
+            <label><input type="radio" name="move-type" value="magic"> 妖術</label>
+            <label><input type="radio" name="move-type" value="explosion"> 爆発</label>
+        </div>
+        <div class="input-group">
+            <label for="move-base">技威力:</label>
+            <input type="number" id="move-base" value="">
+        </div>
+
+        <h2>2. 相手のまもり</h2>
+        <div class="input-group">
+            <label for="stat-defense">まもり:</label>
+            <input type="number" id="stat-defense" value="">
+        </div>
+        
+        <div class="dynamic-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:bold; color:#666;">まもりのバフ・デバフ</span>
+                <button class="btn-add" onclick="addBuffRow('defense')">＋ 追加</button>
+            </div>
+            <div id="defense-buff-list"></div>
+        </div>
+
+        <h2>3. クリティカル</h2>
+        <div class="input-group">
+            <label for="crit-super">超クリティカルの数:</label>
+            <input type="number" id="crit-super" value="0" min="0">
+        </div>
+        
+        <div class="dynamic-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:bold; color:#666;">クリティカル威力アップ(自由)</span>
+                <button class="btn-add" onclick="addCritRow()">＋ 追加</button>
+            </div>
+            <div id="crit-free-list"></div>
+        </div>
+
+        <div class="input-group">
+            <label for="crit-rate">クリティカル率:</label>
+            <div class="input-wrap">
+                <input type="number" id="crit-rate" value="10" step="0.1" min="0" max="100">
+                <span class="suffix">%</span>
+            </div>
+        </div>
+
+        <h2>4. その他の補正倍率</h2>
+        <div class="dynamic-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:bold; color:#666;">自由な補正（ﾆｶﾞﾃ属性1.2倍など）</span>
+                <button class="btn-add" onclick="addModifierRow()">＋ 追加</button>
+            </div>
+            <div id="modifier-list"></div>
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="unlock-limit">
+            <label for="unlock-limit">上限を解放する (9999突破)</label>
+        </div>
+
+        <button class="btn-calc" onclick="calculateAll()">ダメージを計算する</button>
+
+        <div class="results-grid">
+            <div class="result-block">
+                <h3>通常ヒット</h3>
+                <div class="result-item"><span>最小 (0.95):</span><span id="p-normal-min">-</span></div>
+                <div class="result-item main"><span>基準 (1.00):</span><span id="p-normal-normal">-</span></div>
+                <div class="result-item"><span>最大 (1.05):</span><span id="p-normal-max">-</span></div>
+            </div>
+            <div class="result-block crit">
+                <h3>クリティカル</h3>
+                <div class="result-item"><span>最小 (0.95):</span><span id="p-crit-min">-</span></div>
+                <div class="result-item main"><span>基準 (1.00):</span><span id="p-crit-normal">-</span></div>
+                <div class="result-item"><span>最大 (1.05):</span><span id="p-crit-max">-</span></div>
+            </div>
+        </div>
+
+        <details>
+            <summary>▶ 詳しく表示（確率分布表）</summary>
+            <div class="scroll-area">
+                <table class="detail-table">
+                    <thead>
+                        <tr>
+                            <th>出うるダメージ</th>
+                            <th>確率</th>
+                        </tr>
+                    </thead>
+                    <tbody id="detail-list"></tbody>
+                </table>
+            </div>
+        </details>
+
+        <div class="footer-credits">
+            参考元：<a href="https://docs.google.com/spreadsheets/d/1-u5YHsx02AJx9fr_-JwL1x6Pq3kwTBoxIxVEOS-Pb-U" target="_blank">J4th7th 様</a> / <a href="https://togenyanweb.appspot.com/Yokai/" target="_blank">togenyan 様</a><br>
+            Special Thanks: Gemini (AI)
+        </div>
+    </div>
+
+    <script>
+        // --- 行の動的追加ロジック ---
+        function addBuffRow(type) {
+            const container = document.getElementById(type + '-buff-list');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row';
+            
+            let options = '';
+            if (type === 'attack') {
+                options = `
+                    <option value="p_up">ちから(アップ)</option>
+                    <option value="p_down">ちから(ダウン)</option>
+                    <option value="m_up">ようりょく(アップ)</option>
+                    <option value="m_down">ようりょく(ダウン)</option>
+                    <option value="all_up">全ステータス(アップ)</option>
+                    <option value="all_down">全ステータス(ダウン)</option>
+                    <option value="free">攻撃力(自由)</option>
+                `;
+            } else {
+                options = `
+                    <option value="d_up">まもり(アップ)</option>
+                    <option value="d_down">まもり(ダウン)</option>
+                    <option value="all_up">全ステータス(アップ)</option>
+                    <option value="all_down">全ステータス(ダウン)</option>
+                    <option value="free">まもり(自由)</option>
+                `;
+            }
+
+            row.innerHTML = `
+                <select class="buff-type" onchange="updateSign(this)">${options}</select>
+                <div class="input-wrap">
+                    <span class="prefix">+</span>
+                    <input type="number" class="buff-val" value="0" step="0.1">
+                    <span class="suffix">%</span>
+                </div>
+                <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
+            `;
+            container.appendChild(row);
+            updateSign(row.querySelector('.buff-type'));
+        }
+
+        function updateSign(selectEl) {
+            const row = selectEl.parentElement;
+            const prefix = row.querySelector('.prefix');
+            if (selectEl.value.includes('down')) {
+                prefix.textContent = '－';
+            } else {
+                prefix.textContent = '＋';
+            }
+            
+            if (selectEl.value === 'free') {
+                const list = selectEl.parentElement.parentElement;
+                const frees = Array.from(list.querySelectorAll('.buff-type')).filter(s => s.value === 'free');
+                if (frees.length > 1) {
+                    alert('「自由」枠は1つしか追加できません。');
+                    selectEl.selectedIndex = 0;
+                    prefix.textContent = '＋';
+                }
+            }
+        }
+
+        function addCritRow() {
+            const container = document.getElementById('crit-free-list');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row';
+            row.innerHTML = `
+                <span style="font-size:14px;">クリティカル威力アップ(自由)</span>
+                <div class="input-wrap">
+                    <span class="prefix">＋</span>
+                    <input type="number" class="crit-val" value="0" step="0.1">
+                    <span class="suffix">%</span>
+                </div>
+                <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function addModifierRow() {
+            const container = document.getElementById('modifier-list');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row';
+            row.innerHTML = `
+                <span style="font-size:14px;">補正倍率</span>
+                <div class="input-wrap">
+                    <input type="number" class="mod-val" value="1.0" step="0.05">
+                    <span class="suffix">倍</span>
+                </div>
+                <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
+            `;
+            container.appendChild(row);
+        }
+
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        function clampDamage(dmg, unlock) {
+            if (dmg < 1) return 1;
+            if (!unlock && dmg > 9999) return 9999;
+            return dmg;
+        }
+
+        function calculateAll() {
+            const unlock = document.getElementById('unlock-limit').checked;
+
+            let rawPower = Number(document.getElementById('stat-power').value);
+            let rawMagic = Number(document.getElementById('stat-magic').value);
+            let rawDefense = Number(document.getElementById('stat-defense').value);
+
+            let attBuffSum = { p_up:0, p_down:0, m_up:0, m_down:0, all_up:0, all_down:0, free:0 };
+            document.querySelectorAll('#attack-buff-list .dynamic-row').forEach(row => {
+                let type = row.querySelector('.buff-type').value;
+                let val = Number(row.querySelector('.buff-val').value);
+                attBuffSum[type] += val;
+            });
+
+            let p_up_final = clamp(attBuffSum.p_up, 0, 100);
+            let p_down_final = clamp(attBuffSum.p_down, 0, 100);
+            let m_up_final = clamp(attBuffSum.m_up, 0, 100);
+            let m_down_final = clamp(attBuffSum.m_down, 0, 100);
+            let all_up_final_att = clamp(attBuffSum.all_up, 0, 50);
+            let all_down_final_att = clamp(attBuffSum.all_down, 0, 50);
+
+            let powerRate = 100 + attBuffSum.free + p_up_final - p_down_final + all_up_final_att - all_down_final_att;
+            let magicRate = 100 + attBuffSum.free + m_up_final - m_down_final + all_up_final_att - all_down_final_att;
+            
+            let finalPower = Math.max(0, rawPower * (powerRate / 100));
+            let finalMagic = Math.max(0, rawMagic * (magicRate / 100));
+
+            let a = 0;
+            const moveType = document.querySelector('input[name="move-type"]:checked').value;
+            if (moveType === 'physical') {
+                a = finalPower;
+            } else if (moveType === 'magic') {
+                a = finalMagic;
+            } else if (moveType === 'explosion') {
+                a = (finalPower + finalMagic) / 2;
+            }
+
+            let b = Number(document.getElementById('move-base').value);
+
+            let defBuffSum = { d_up:0, d_down:0, all_up:0, all_down:0, free:0 };
+            document.querySelectorAll('#defense-buff-list .dynamic-row').forEach(row => {
+                let type = row.querySelector('.buff-type').value;
+                let val = Number(row.querySelector('.buff-val').value);
+                defBuffSum[type] += val;
+            });
+
+            let d_up_final = clamp(defBuffSum.d_up, 0, 700);
+            let d_down_final = clamp(defBuffSum.d_down, 0, 80);
+            let all_up_final_def = clamp(defBuffSum.all_up, 0, 350);
+            let all_down_final_def = clamp(defBuffSum.all_down, 0, 50);
+
+            let defRate = 100 + defBuffSum.free + d_up_final - d_down_final + all_up_final_def - all_down_final_def;
+            let d = Math.max(0, rawDefense * (defRate / 100));
+
+            let superCritCount = Number(document.getElementById('crit-super').value);
+            let critFreeSum = 0;
+            document.querySelectorAll('#crit-free-list .crit-val').forEach(input => {
+                critFreeSum += Number(input.value);
+            });
+            let critModifier = 1.5 * (1 + 0.5 * superCritCount + (critFreeSum / 100));
+            let critRate = clamp(Number(document.getElementById('crit-rate').value), 0, 100);
+
+            let totalMod = 1.0;
+            document.querySelectorAll('#modifier-list .mod-val').forEach(input => {
+                totalMod *= Number(input.value);
+            });
+
+            let baseWithoutRand = (a * b) / (0.7 * d + 70) * totalMod;
+
+            function getDmgTuple(factor) {
+                let norm = clampDamage(Math.floor(baseWithoutRand * factor), unlock);
+                let crit = clampDamage(Math.floor(Math.floor(baseWithoutRand * factor) * critModifier), unlock);
+                return { norm, crit };
+            }
+
+            let d095 = getDmgTuple(0.95);
+            let d100 = getDmgTuple(1.00);
+            let d105 = getDmgTuple(1.05);
+
+            document.getElementById('p-normal-min').textContent = d095.norm;
+            document.getElementById('p-normal-normal').textContent = d100.norm;
+            document.getElementById('p-normal-max').textContent = d105.norm;
+
+            document.getElementById('p-crit-min').textContent = d095.crit;
+            document.getElementById('p-crit-normal').textContent = d100.crit;
+            document.getElementById('p-crit-max').textContent = d105.crit;
+
+            let damageWeights = {};
+            let loopCount = 0;
+            
+            let w_normal = (100 - critRate) / 100;
+            let w_crit = critRate / 100;
+
+            for (let i = 950000; i <= 1050000; i++) {
+                let r = i / 1000000;
+                let baseDmg = Math.floor(baseWithoutRand * r);
+                
+                if (w_normal > 0) {
+                    let dNorm = clampDamage(baseDmg, unlock);
+                    damageWeights[dNorm] = (damageWeights[dNorm] || 0) + w_normal;
+                }
+                if (w_crit > 0) {
+                    let dCrit = clampDamage(Math.floor(baseDmg * critModifier), unlock);
+                    damageWeights[dCrit] = (damageWeights[dCrit] || 0) + w_crit;
+                }
+                loopCount++;
+            }
+
+            let sortedDamages = Object.keys(damageWeights).map(Number).sort((x, y) => x - y);
+            let tableHtml = "";
+
+            sortedDamages.forEach(dmg => {
+                let weight = damageWeights[dmg];
+                let percentage = ((weight / loopCount) * 100).toFixed(3);
+                if (parseFloat(percentage) > 0) {
+                    tableHtml += `<tr><td>${dmg}</td><td>${percentage}%</td></tr>`;
+                }
+            });
+
+            document.getElementById('detail-list').innerHTML = tableHtml;
+        }
+
+        calculateAll();
+    </script>
+
+</body>
+</html>
