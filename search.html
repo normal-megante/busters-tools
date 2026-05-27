@@ -3,10 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>妖怪検索図鑑（テスト中）</title>
+    <title>妖怪バスターズ 検索図鑑（テスト版）</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .search-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .search-box { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
+        .filter-select { padding: 8px; font-size: 14px; margin-right: 10px; }
+        .slider-group { margin: 15px 0; background: #eef; padding: 10px; border-radius: 5px; }
+        .slider-group label { margin-right: 15px; font-weight: bold; }
+        .yokai-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .yokai-card { background: white; border-radius: 8px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-top: 5px solid #ccc; }
+        .yokai-card.is-プリチー { border-top-color: #ff69b4; }
+        .yokai-card.is-イサマシ { border-top-color: #dc3545; }
+        .yokai-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .yokai-name { font-size: 20px; font-weight: bold; margin: 0; }
+        .furigana { font-size: 12px; color: #666; display: block; }
+        .badge { background: #666; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge.rank-S { background: #ffcc00; color: #000; }
+        .badge.rank-B { background: #4682b4; }
+        .status-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .status-table th, .status-table td { border: 1px solid #ddd; padding: 6px; text-align: center; font-size: 14px; }
+        .status-table th { background: #f9f9f9; }
+    </style>
 </head>
 <body>
-    <h1>妖怪検索図鑑</h1>
-    <p>ここに検索機能を作っていきます！</p>
+
+    <h1>👻 妖怪バスターズ 検索図鑑（ミニチュア版）</h1>
+
+    <div class="search-container">
+        <h3>🔍 条件で検索する</h3>
+        <input type="text" id="searchInput" class="search-box" placeholder="妖怪名 または ふりがな で検索...">
+        
+        <select id="tribeFilter" class="filter-select">
+            <option value="">すべての種族</option>
+            <option value="プリチー">プリチー族</option>
+            <option value="イサマシ">イサマシ族</option>
+        </select>
+
+        <div class="slider-group">
+            <h4>📊 ステータスシミュレーター（3DS完全再現版）</h4>
+            <label>レベル: <span id="lvlVal">99</span>
+                <input type="range" id="lvlSlider" min="1" max="99" value="99" style="width:150px;">
+            </label>
+            <label>個体値: <span id="ivVal">30</span>
+                <input type="range" id="ivSlider" min="0" max="50" value="30" style="width:150px;">
+            </label>
+        </div>
+    </div>
+
+    <div id="yokaiList" class="yokai-list"></div>
+
+    <script>
+        // サンプルデータ（ジバニャンとブシニャン）
+        const yokaiData = [
+            {
+                "id": "001",
+                "name": "ジバニャン",
+                "furigana": "じばにゃん",
+                "tribe": "プリチー",
+                "rank": "B",
+                "status": {
+                    "hp":  { "speciesA": 120, "speciesB": 320 },
+                    "str": { "speciesA": 80,  "speciesB": 240 },
+                    "mag": { "speciesA": 50,  "speciesB": 150 },
+                    "def": { "speciesA": 60,  "speciesB": 180 },
+                    "spd": "ふつう"
+                }
+            },
+            {
+                "id": "002",
+                "name": "ブシニャン",
+                "furigana": "ぶしニャン",
+                "tribe": "イサマシ",
+                "rank": "S",
+                "status": {
+                    "hp":  { "speciesA": 150, "speciesB": 400 },
+                    "str": { "speciesA": 110, "speciesB": 310 },
+                    "mag": { "speciesA": 40,  "speciesB": 130 },
+                    "def": { "speciesA": 70,  "speciesB": 200 },
+                    "spd": "はやい"
+                }
+            }
+        ];
+
+        // ズレを無くす魔法の計算関数（Math.froundを使用）
+        function calculateStatus(speciesA, speciesB, level, iv) {
+            const c = Math.fround(0.010204081423580647);
+            let lvlMinus1 = Math.fround(level - 1);
+            let diff = Math.fround(iv + speciesB - speciesA);
+            
+            let part1 = Math.fround(c * lvlMinus1);
+            let part2 = Math.fround(part1 * diff);
+            let finalFloat = Math.fround(Math.fround(speciesA) + part2);
+            
+            return Math.floor(finalFloat);
+        }
+
+        // 画面に妖怪一覧を表示する関数
+        function renderList() {
+            const listEl = document.getElementById('yokaiList');
+            const searchWord = document.getElementById('searchInput').value.toLowerCase();
+            const selectedTribe = document.getElementById('tribeFilter').value;
+            
+            const level = parseInt(document.getElementById('lvlSlider').value);
+            const iv = parseInt(document.getElementById('ivSlider').value);
+
+            listEl.innerHTML = ''; // 一度クリア
+
+            yokaiData.forEach(yokai => {
+                // 検索フィルターの判定
+                const matchesSearch = yokai.name.includes(searchWord) || yokai.furigana.includes(searchWord);
+                const matchesTribe = selectedTribe === "" || yokai.tribe === selectedTribe;
+
+                if (matchesSearch && matchesTribe) {
+                    // 各ステータスのリアルタイム計算
+                    const currentHP  = calculateStatus(yokai.status.hp.speciesA,  yokai.status.hp.speciesB,  level, iv);
+                    const currentStr = calculateStatus(yokai.status.str.speciesA, yokai.status.str.speciesB, level, iv);
+                    const currentMag = calculateStatus(yokai.status.mag.speciesA, yokai.status.mag.speciesB, level, iv);
+                    const currentDef = calculateStatus(yokai.status.def.speciesA, yokai.status.def.speciesB, level, iv);
+
+                    // カードのHTMLを作成
+                    const card = document.createElement('div');
+                    card.className = `yokai-card is-${yokai.tribe}`;
+                    card.innerHTML = `
+                        <div class="yokai-header">
+                            <div>
+                                <span class="furigana">${yokai.furigana}</span>
+                                <h3 class="yokai-name">${yokai.name}</h3>
+                            </div>
+                            <span class="badge rank-${yokai.rank}">ランク${yokai.rank}</span>
+                        </div>
+                        <p><strong>種族:</strong> ${yokai.tribe}族</p>
+                        
+                        <table class="status-table">
+                            <tr><th>HP</th><th>ちから</th><th>ようりょく</th><th>まもり</th><th>すばやさ</th></tr>
+                            <tr>
+                                <td>${currentHP}</td>
+                                <td>${currentStr}</td>
+                                <td>${currentMag}</td>
+                                <td>${currentDef}</td>
+                                <td><span class="badge" style="background:#555;">${yokai.status.spd}</span></td>
+                            </tr>
+                        </table>
+                    `;
+                    listEl.appendChild(card);
+                }
+            });
+        }
+
+        // イベントリスナー（入力が変わったら自動で再表示）
+        document.getElementById('searchInput').addEventListener('input', renderList);
+        document.getElementById('tribeFilter').addEventListener('change', renderList);
+        
+        document.getElementById('lvlSlider').addEventListener('input', (e) => {
+            document.getElementById('lvlVal').innerText = e.target.value;
+            renderList();
+        });
+        document.getElementById('ivSlider').addEventListener('input', (e) => {
+            document.getElementById('ivVal').innerText = e.target.value;
+            renderList();
+        });
+
+        // 最初に1回実行しておく
+        renderList();
+    </script>
 </body>
 </html>
