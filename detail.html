@@ -7,8 +7,23 @@
     <style>
         body { font-family: sans-serif; background: #1a1d20; padding: 20px; color: #f8f9fa; }
         .back-btn { display: inline-block; margin-bottom: 20px; color: #4dabf7; text-decoration: none; font-weight: bold; }
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 300px; max-width: 1200px; }
-        @media (max-width: 768px) { .container { grid-template-columns: 1fr; gap: 20px; } }
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; }
+        
+        /* 【修正】スマホ表示（画面横幅768px以下）の時の上下並び替え */
+        @media (max-width: 768px) {
+            .container {
+                display: flex;
+                flex-direction: column; 
+                gap: 20px;
+            }
+            .calc-box {
+                order: 1; /* ステータス計算を1番目（上側）に表示 */
+            }
+            .info-box {
+                order: 2; /* 名前やスキル情報を2番目（下側）に表示 */
+            }
+        }
+        
         .info-box, .calc-box { background: #212529; padding: 25px; border-radius: 8px; border: 1px solid #343a40; }
         h2, h3 { margin-top: 0; color: #fff; border-bottom: 2px solid #343a40; padding-bottom: 8px; }
         
@@ -18,7 +33,7 @@
         .input-group input[type="number"] { width: 80px; padding: 6px; background: #2b3035; border: 1px solid #495057; color: white; border-radius: 4px; font-size: 15px; }
         
         .iv-total { background: #2b3035; padding: 10px; border-radius: 4px; margin-top: 15px; font-size: 14px; font-weight: bold; }
-        .warning { color: #ff6b6b; font-size: 12px; margin-top: 5px; display: none; }
+        .warning { color: #ff6b6b; font-size: 13px; margin-top: 8px; display: none; line-height: 1.4; }
         
         /* ステータス結果テーブル */
         .result-table { width: 100%; border-collapse: collapse; margin-top: 20px; text-align: center; }
@@ -53,14 +68,14 @@
             
             <h4 style="margin: 20px 0 10px 0; color: #adb5bd;">各ステータスの個体値入力</h4>
             
-            <div class="input-group"><label>HP 個体値</label><input type="number" id="ivHP" min="0" max="40" value="10"></div>
+            <div class="input-group"><label>HP 個体値</label><input type="number" id="ivHP" min="0" max="40" value="20"></div>
             <div class="input-group"><label>ちから 個体値</label><input type="number" id="ivStr" min="0" max="40" value="10"></div>
             <div class="input-group"><label>ようりょく 個体値</label><input type="number" id="ivMag" min="0" max="40" value="10"></div>
             <div class="input-group"><label>まもり 個体値</label><input type="number" id="ivDef" min="0" max="40" value="10"></div>
             
             <div class="iv-total">
                 個体値合計 (HP/2 + 力 + 妖 + 守): <span id="ivTotalVal">40</span> / 40
-                <div id="ivWarning" class="warning">⚠️ 合計が40を超えています！ゲーム内で存在しない個体値です。</div>
+                <div id="ivWarning" class="warning"></div>
             </div>
 
             <table class="result-table">
@@ -81,7 +96,7 @@
     </div>
 
     <script>
-        // 本番用・全ステータスデータが入った詳細データ倉庫
+        // 全ステータス詳細データ倉庫
         const database = {
             "001": {
                 "name": "ジバニャン", "furigana": "じばにゃん", "tribe": "プリチー", "role": "アタッカー", "rank": "B",
@@ -147,11 +162,17 @@
             const ivTotal = (ivHP / 2) + ivStr + ivMag + ivDef;
             document.getElementById('ivTotalVal').innerText = ivTotal;
             
-            // 40を超えたら警告を出す
-            if (ivTotal > 40) {
-                document.getElementById('ivWarning').style.display = 'block';
+            // 【修正】40ぴったりではない（超えている、または未満）の時に細かく警告を出し分ける
+            const warningEl = document.getElementById('ivWarning');
+            if (ivTotal !== 40) {
+                warningEl.style.display = 'block';
+                if (ivTotal > 40) {
+                    warningEl.innerText = `⚠️ 合計が ${ivTotal} になっています！40を超えており、ゲーム内で存在しない個体値です。`;
+                } else {
+                    warningEl.innerText = `⚠️ 合計が ${ivTotal} になっています！40未満であり、ゲーム内で存在しない個体値です。`;
+                }
             } else {
-                document.getElementById('ivWarning').style.display = 'none';
+                warningEl.style.display = 'none';
             }
 
             // 各ステータスの確定計算（それぞれの個体値を個別に適用）
