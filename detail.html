@@ -7,25 +7,52 @@
     <style>
         body { font-family: sans-serif; background: #1a1d20; padding: 20px; color: #f8f9fa; }
         .back-btn { display: inline-block; margin-bottom: 20px; color: #4dabf7; text-decoration: none; font-weight: bold; }
-        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; }
         
-        /* 【修正】スマホ表示（画面横幅768px以下）の時の上下並び替え */
+        /* 📦 画面全体のレイアウト設定（Grid Areaの魔法） */
+        .container { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* PCは左右2列 */
+            grid-template-areas: 
+                "name calc"
+                "info calc";    /* 左上に名前、左下にスキル、右側に計算機 */
+            gap: 20px; 
+            max-width: 1200px; 
+            align-items: start;
+        }
+        
+        /* 📱 スマホ表示（画面横幅768px以下）の時の並び順指定 */
         @media (max-width: 768px) {
             .container {
-                display: flex;
-                flex-direction: column; 
-                gap: 20px;
-            }
-            .calc-box {
-                order: 1; /* ステータス計算を1番目（上側）に表示 */
-            }
-            .info-box {
-                order: 2; /* 名前やスキル情報を2番目（下側）に表示 */
+                grid-template-columns: 1fr; /* スマホは1列 */
+                grid-template-areas: 
+                    "name"   /* 1番上：名前・ID・画像 */
+                    "calc"   /* 2番目：ステータス計算機 */
+                    "info";  /* 3番目：基本情報・スキル説明 */
             }
         }
         
-        .info-box, .calc-box { background: #212529; padding: 25px; border-radius: 8px; border: 1px solid #343a40; }
+        /* 各エリアの名前定義 */
+        .name-box { grid-area: name; }
+        .calc-box { grid-area: calc; }
+        .info-box { grid-area: info; }
+        
+        /* 共通の箱デザイン */
+        .name-box, .info-box, .calc-box { background: #212529; padding: 25px; border-radius: 8px; border: 1px solid #343a40; }
         h2, h3 { margin-top: 0; color: #fff; border-bottom: 2px solid #343a40; padding-bottom: 8px; }
+        
+        /* 今後使う画像スペースの仮枠 */
+        .yokai-image-space { 
+            background: #2b3035; 
+            height: 160px; 
+            border-radius: 6px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #6c757d; 
+            border: 1px dashed #495057; 
+            margin-top: 10px;
+            font-size: 14px;
+        }
         
         /* 入力フォームのスタイル（上下矢印用） */
         .input-group { display: flex; align-items: center; margin-bottom: 12px; }
@@ -47,20 +74,24 @@
     <a href="search.html" class="back-btn">⬅ 検索一覧に戻る</a>
 
     <div class="container">
-        <div class="info-box">
-            <span id="yokaiFurigana" style="font-size:14px; color:#868e96;"></span>
-            <h2 id="yokaiName">妖怪名</h2>
-            <p><strong>種族:</strong> <span id="yokaiTribe"></span></p>
-            <p><strong>役割:</strong> <span id="yokaiRole"></span></p>
-            <p><strong>ランク:</strong> <span id="yokaiRank"></span></p>
-            <h3>💡 スキル・技情報</h3>
-            <p><strong>スキル:</strong> <span id="yokaiSkill"></span></p>
-            <p><strong>説明:</strong> <span id="yokaiSkillDesc"></span></p>
+        
+        <!-- ① 名前・画像エリア -->
+        <div class="name-box">
+            <span id="yokaiId" style="font-size:14px; color:#adb5bd; float:right; font-weight:bold;"></span>
+            <span id="yokaiFurigana" style="font-size:14px; color:#868e96; display:block;"></span>
+            <h2 id="yokaiName" style="margin: 5px 0 15px 0; border-bottom: none; padding-bottom: 0;">妖怪名</h2>
+            
+            <!-- 📸 今後ここに画像を追加できます（現在は枠だけ用意） -->
+            <div class="yokai-image-space">
+                📸 ここに妖怪の画像が入る予定
+            </div>
         </div>
 
+        <!-- ② ガチ勢用ステータスシミュレーター -->
         <div class="calc-box">
             <h3>📊 ステータスシミュレーター</h3>
             
+            <!-- レベル入力 -->
             <div class="input-group">
                 <label>レベル</label>
                 <input type="number" id="inputLevel" min="1" max="99" value="99">
@@ -68,16 +99,19 @@
             
             <h4 style="margin: 20px 0 10px 0; color: #adb5bd;">各ステータスの個体値入力</h4>
             
+            <!-- 4系統の個体値入力（初期値を平均的な 20, 10, 10, 10 に設定） -->
             <div class="input-group"><label>HP 個体値</label><input type="number" id="ivHP" min="0" max="40" value="20"></div>
             <div class="input-group"><label>ちから 個体値</label><input type="number" id="ivStr" min="0" max="40" value="10"></div>
             <div class="input-group"><label>ようりょく 個体値</label><input type="number" id="ivMag" min="0" max="40" value="10"></div>
             <div class="input-group"><label>まもり 個体値</label><input type="number" id="ivDef" min="0" max="40" value="10"></div>
             
+            <!-- 個体値合計値の自動計算表示 -->
             <div class="iv-total">
                 個体値合計 (HP/2 + 力 + 妖 + 守): <span id="ivTotalVal">40</span> / 40
                 <div id="ivWarning" class="warning"></div>
             </div>
 
+            <!-- 計算結果の出力表 -->
             <table class="result-table">
                 <thead>
                     <tr><th>HP</th><th>ちから</th><th>ようりょく</th><th>まもり</th><th>すばやさ</th></tr>
@@ -93,6 +127,18 @@
                 </tbody>
             </table>
         </div>
+
+        <!-- ③ 基本情報・スキル技情報 -->
+        <div class="info-box">
+            <h3>📝 基本データ</h3>
+            <p><strong>種族:</strong> <span id="yokaiTribe"></span></p>
+            <p><strong>役割:</strong> <span id="yokaiRole"></span></p>
+            <p><strong>ランク:</strong> <span id="yokaiRank"></span></p>
+            <h3>💡 スキル・技情報</h3>
+            <p><strong>スキル:</strong> <span id="yokaiSkill"></span></p>
+            <p><strong>説明:</strong> <span id="yokaiSkillDesc"></span></p>
+        </div>
+
     </div>
 
     <script>
@@ -143,6 +189,7 @@
             if (!yokai) return;
 
             // 基本情報の埋め込み
+            document.getElementById('yokaiId').innerText = "辞典番号: #" + yokaiId;
             document.getElementById('yokaiName').innerText = yokai.name;
             document.getElementById('yokaiFurigana').innerText = yokai.furigana;
             document.getElementById('yokaiTribe').innerText = yokai.tribe + "族";
@@ -162,7 +209,7 @@
             const ivTotal = (ivHP / 2) + ivStr + ivMag + ivDef;
             document.getElementById('ivTotalVal').innerText = ivTotal;
             
-            // 【修正】40ぴったりではない（超えている、または未満）の時に細かく警告を出し分ける
+            // 40ぴったりではない時に細かく警告を出し分ける
             const warningEl = document.getElementById('ivWarning');
             if (ivTotal !== 40) {
                 warningEl.style.display = 'block';
@@ -175,7 +222,7 @@
                 warningEl.style.display = 'none';
             }
 
-            // 各ステータスの確定計算（それぞれの個体値を個別に適用）
+            // 各ステータスの確定計算
             document.getElementById('resHP').innerText  = calculateStatus(yokai.status.hp.speciesA,  yokai.status.hp.speciesB,  level, ivHP);
             document.getElementById('resStr').innerText = calculateStatus(yokai.status.str.speciesA, yokai.status.str.speciesB, level, ivStr);
             document.getElementById('resMag').innerText = calculateStatus(yokai.status.mag.speciesA, yokai.status.mag.speciesB, level, ivMag);
@@ -183,7 +230,7 @@
             document.getElementById('resSpd').innerText = yokai.status.spd;
         }
 
-        // すべての入力欄に「値が変わったら再計算する」イベントを設定
+        // すべての入力欄にイベントを設定
         const inputs = ['inputLevel', 'ivHP', 'ivStr', 'ivMag', 'ivDef'];
         inputs.forEach(id => {
             document.getElementById(id).addEventListener('input', updateScreen);
