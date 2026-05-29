@@ -3,48 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>妖怪バスターズ 検索図鑑</title>
+    <title>妖怪バスターズ 妖怪検索一覧</title>
     <style>
         body { font-family: sans-serif; background: #1a1d20; padding: 20px; color: #f8f9fa; }
-        .search-container { background: #212529; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #343a40; }
-        .search-box { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; background: #2b3035; border: 1px solid #495057; color: white; border-radius: 4px; }
-        .filter-select { padding: 8px; font-size: 14px; margin-right: 10px; background: #2b3035; border: 1px solid #495057; color: white; border-radius: 4px; }
-        
-        /* にゃんこ風ダークテーブルスタイル */
-        .yokai-table { width: 100%; border-collapse: collapse; background: #212529; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        .yokai-table th, .yokai-table td { padding: 12px; text-align: left; border-bottom: 1px solid #343a40; font-size: 14px; }
-        .yokai-table th { background: #2b3035; color: #adb5bd; font-weight: bold; }
+        h1 { color: #fff; margin-bottom: 20px; font-size: 24px; }
+        .filter-box { background: #212529; padding: 15px; border-radius: 8px; border: 1px solid #343a40; margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .filter-input, .filter-select { background: #2b3035; border: 1px solid #495057; color: white; padding: 8px 12px; border-radius: 4px; font-size: 14px; }
+        .filter-input { flex: 1; min-width: 200px; }
+        .yokai-table { width: 100%; border-collapse: collapse; background: #212529; border-radius: 8px; overflow: hidden; border: 1px solid #343a40; }
+        .yokai-table th, .yokai-table td { padding: 12px; text-align: left; border-bottom: 1px solid #343a40; }
+        .yokai-table th { background: #2b3035; color: #adb5bd; font-size: 14px; }
         .yokai-table tr:hover { background: #2c3034; }
-        
-        /* リンクとバッジ */
         .yokai-link { color: #4dabf7; text-decoration: none; font-weight: bold; }
         .yokai-link:hover { text-decoration: underline; }
-        .furigana { font-size: 11px; color: #868e96; display: block; }
-        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; text-align: center; }
-        .rank-S { background: #fcc419; color: #212529; }
-        .rank-B { background: #4dabf7; }
-        .role-badge { background: #ff6b6b; }
-        .tribe-badge { background: #5c7cfa; }
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-right: 5px; color: #fff; }
+        .bg-プリチー { background: #ff6b6b; }
+        .bg-イサマシ { background: #e8590c; }
+        .bg-ウスラカゲ { background: #7048e8; }
     </style>
 </head>
 <body>
 
-    <h1>👻 妖怪バスターズ 検索図鑑</h1>
+    <h1>👻 妖怪バスターズ データ検索</h1>
 
-    <div class="search-container">
-        <h3>🔍 条件で絞り込む</h3>
-        <input type="text" id="searchInput" class="search-box" placeholder="妖怪名・ふりがな・スキル・技名で検索...">
+    <div class="filter-box">
+        <input type="text" id="searchInput" class="filter-input" placeholder="妖怪名、または ふりがな で検索...">
         
         <select id="tribeFilter" class="filter-select">
             <option value="">すべての種族</option>
-            <option value="プリチー">プリチー族</option>
             <option value="イサマシ">イサマシ族</option>
+            <option value="プリチー">プリチー族</option>
+            <option value="ウスラカゲ">ウスラカゲ族</option>
         </select>
-        
+
         <select id="roleFilter" class="filter-select">
             <option value="">すべての役割</option>
             <option value="アタッカー">アタッカー</option>
+            <option value="タンク">タンク</option>
             <option value="ヒーラー">ヒーラー</option>
+            <option value="レンジャー">レンジャー</option>
         </select>
     </div>
 
@@ -52,42 +49,22 @@
         <thead>
             <tr>
                 <th>辞典番号</th>
-                <th>ランク</th>
                 <th>名前</th>
                 <th>種族</th>
                 <th>役割</th>
+                <th>ランク</th>
                 <th>スキル</th>
-                <th>得意/苦手</th>
             </tr>
         </thead>
         <tbody id="yokaiTableBody">
             </tbody>
     </table>
 
+    <script src="data.js"></script>
+
     <script>
-        // 共有のデータ倉庫（後から項目をどんどん増やせます）
-        const yokaiData = [
-            {
-                "id": "001",
-                "name": "ジバニャン",
-                "furigana": "じばにゃん",
-                "tribe": "プリチー",
-                "role": "アタッカー",
-                "rank": "B",
-                "skill_name": "底力",
-                "attribute": "火 / 水"
-            },
-            {
-                "id": "002",
-                "name": "ブシニャン",
-                "furigana": "ぶしにゃん",
-                "tribe": "イサマシ",
-                "role": "アタッカー",
-                "rank": "S",
-                "skill_name": "超・クリティカル",
-                "attribute": "風 / 氷"
-            }
-        ];
+        // data.js のオブジェクトデータを、検索しやすいように配列の形に変形する
+        const yokaiData = Object.values(yokaiDatabase);
 
         function renderTable() {
             const tbody = document.getElementById('yokaiTableBody');
@@ -98,36 +75,31 @@
             tbody.innerHTML = '';
 
             yokaiData.forEach(yokai => {
-                // 検索（名前、ひらがな、スキル名でも引っかかるように拡張）
-                const matchesSearch = yokai.name.includes(searchWord) || 
-                                      yokai.furigana.includes(searchWord) || 
-                                      yokai.skill_name.includes(searchWord);
+                const matchesSearch = yokai.name.includes(searchWord) || yokai.furigana.includes(searchWord);
                 const matchesTribe = selectedTribe === "" || yokai.tribe === selectedTribe;
                 const matchesRole = selectedRole === "" || yokai.role === selectedRole;
 
                 if (matchesSearch && matchesTribe && matchesRole) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>#${yokai.id}</td>
-                        <td><span class="badge rank-${yokai.rank}">ランク${yokai.rank}</span></td>
-                        <td>
-                            <span class="furigana">${yokai.furigana}</span>
-                            <a href="detail.html?id=${yokai.id}" class="yokai-link">${yokai.name}</a>
-                        </td>
-                        <td><span class="badge tribe-badge">${yokai.tribe}</span></td>
-                        <td><span class="badge role-badge">${yokai.role}</span></td>
-                        <td><strong>${yokai.skill_name}</strong></td>
-                        <td>${yokai.attribute}</td>
+                        <td style="color:#868e96; font-weight:bold;">#${yokai.id}</td>
+                        <td><a href="detail.html?id=${yokai.id}" class="yokai-link">${yokai.name}</a></td>
+                        <td><span class="badge bg-${yokai.tribe}">${yokai.tribe}族</span></td>
+                        <td>${yokai.role}</td>
+                        <td style="font-weight:bold; color:#fcc419;">${yokai.rank}</td>
+                        <td style="font-size:13px; color:#adb5bd;"><strong>${yokai.skill_name}</strong></td>
                     `;
                     tbody.appendChild(tr);
                 }
             });
         }
 
+        // 入力や選択が変わったら即座に再検索
         document.getElementById('searchInput').addEventListener('input', renderTable);
         document.getElementById('tribeFilter').addEventListener('change', renderTable);
         document.getElementById('roleFilter').addEventListener('change', renderTable);
 
+        // 最初の表示
         renderTable();
     </script>
 </body>
