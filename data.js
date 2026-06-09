@@ -3,27 +3,27 @@
 const yokaiDatabase = {
     "001": {
         "id": "001",
-        "name": "ジバニャン", "furigana": "じばにゃん", "tribe": "プリチー", "role": "アタッカー", "rank": "B",
-        "skill_name": "底力", "skill_desc": "HPが残り少なくなったとき ちからがアップする。",
+        "name": "ぶようじん坊", "furigana": "ぶようじんぼう", "tribe": "イサマシ", "role": "アタッカー", "rank": "E",
+        "skill_name": "ぶようじん", "skill_desc": "クリティカルされやすくなるが　クリティカルが出やすくなる。",
         "image": "001.png",
         "status": {
-            "hp":  { "speciesA": 120, "speciesB": 320 },
-            "str": { "speciesA": 80,  "speciesB": 240 },
-            "mag": { "speciesA": 50,  "speciesB": 150 },
-            "def": { "speciesA": 60,  "speciesB": 180 },
-            "spd": "ふつう"
+            "hp":  { "speciesA": 49, "speciesB": 344 },
+            "str": { "speciesA": 16,  "speciesB": 200 },
+            "mag": { "speciesA": 3,  "speciesB": 45 },
+            "def": { "speciesA": 5,  "speciesB": 82 },
+            "spd": "はやい"
         }
     },
     "002": {
         "id": "002",
-        "name": "ブシニャン", "furigana": "ぶしにゃん", "tribe": "イサマシ", "role": "アタッカー", "rank": "S",
-        "skill_name": "超・クリティカル", "skill_desc": "クリティカルの威力より高くなる。",
+        "name": "がらあきん坊", "furigana": "がらあきんぼう", "tribe": "イサマシ", "role": "アタッカー", "rank": "C",
+        "skill_name": "ぶようじん", "skill_desc": "クリティカルされやすくなるが　クリティカルが出やすくなる。",
         "image": "002.png",
         "status": {
-            "hp":  { "speciesA": 150, "speciesB": 400 },
-            "str": { "speciesA": 110, "speciesB": 310 },
-            "mag": { "speciesA": 40,  "speciesB": 130 },
-            "def": { "speciesA": 70,  "speciesB": 200 },
+            "hp":  { "speciesA": 61, "speciesB": 382 },
+            "str": { "speciesA": 19, "speciesB": 229 },
+            "mag": { "speciesA": 5,  "speciesB": 50 },
+            "def": { "speciesA": 8,  "speciesB": 99 },
             "spd": "はやい"
         }
     }
