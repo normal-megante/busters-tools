@@ -1,101 +1,126 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>妖怪ウォッチバスターズ ダメージ計算サイト</title>
-    <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #fff9e6; color: #333; display: flex; justify-content: center; }
-        .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; width: 100%; box-sizing: border-box; }
-        h1 { text-align: center; font-size: 22px; color: #d9534f; margin-top: 0; margin-bottom: 20px; border-bottom: 2px solid #d9534f; padding-bottom: 10px; }
-        h2 { font-size: 16px; color: #333; border-left: 4px solid #ff9800; padding-left: 8px; margin-top: 20px; margin-bottom: 10px; }
-        
-        .input-group { margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-        .input-group.radio-group { justify-content: flex-start; gap: 15px; }
-        label { font-weight: bold; font-size: 14px; }
-        .input-wrap { display: flex; align-items: center; }
-        .prefix { margin-right: 4px; font-weight: bold; }
-        .suffix { margin-left: 4px; font-size: 14px; }
-        input[type="number"] { width: 90px; padding: 5px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; text-align: right; }
-        
-        /* 動的追加エリアのスタイル */
-        .dynamic-container { background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px dashed #ccc; margin-bottom: 15px; }
-        .dynamic-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-        .dynamic-row:last-child { margin-bottom: 0; }
-        select { padding: 5px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; width: 180px; }
-        .btn-add { background: #5cb85c; color: white; border: none; padding: 4px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-del { background: #d9534f; color: white; border: none; padding: 4px 8px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
-        
-        /* チェックボックス */
-        .checkbox-group { margin: 15px 0; display: flex; align-items: center; gap: 5px; font-weight: bold; color: #cc0000; }
+ <!DOCTYPE html> 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>妖怪ウォッチバスターズ ダメージ計算サイト(実機再現版)</title>
+<style>
+    [hidden] { display: none !important; }
+    body { font-family: sans-serif; padding: 20px; background-color: #fff9e6; color: #333; display: flex; justify-content: center; align-items: flex-start; margin: 0; }
+    .box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 520px; width: 100%; box-sizing: border-box; }
+    h1 { text-align: center; font-size: 22px; color: #d9534f; margin-top: 0; margin-bottom: 6px; border-bottom: 2px solid #d9534f; padding-bottom: 10px; }
+    .sub { text-align: center; font-size: 11px; color: #888; margin: 0 0 20px; }
+    h2 { font-size: 16px; color: #333; border-left: 4px solid #ff9800; padding-left: 8px; margin-top: 20px; margin-bottom: 10px; }
 
-        button.btn-calc { width: 100%; padding: 12px; font-size: 18px; background-color: #ff9800; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; box-shadow: 0 3px 0 #e68a00; }
-        button.btn-calc:active { transform: translateY(3px); box-shadow: none; }
-        
-        /* 結果表示 */
-        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eee; }
-        .result-block { background: #fff5f5; padding: 10px; border-radius: 8px; border: 1px solid #ffe0e0; }
-        .result-block.crit { background: #f5faff; border: 1px solid #e0f0ff; }
-        .result-block h3 { margin: 0 0 8px 0; font-size: 14px; text-align: center; color: #c9302c; }
-        .result-block.crit h3 { color: #0066cc; }
-        .result-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
-        .result-item.main { font-size: 16px; font-weight: bold; color: #d9534f; border-top: 1px dashed #ffcccc; padding-top: 3px; }
-        .result-block.crit .result-item.main { color: #0066cc; border-top: 1px dashed #cce5ff; }
-        
-        /* 詳しく表示 */
-        details { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
-        summary { font-weight: bold; color: #0066cc; cursor: pointer; font-size: 16px; }
-        .scroll-area { max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 6px; margin-top: 10px; }
-        .detail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .detail-table th, .detail-table td { border-bottom: 1px solid #eee; padding: 6px; text-align: center; }
-        .detail-table th { background-color: #f2f2f2; position: sticky; top: 0; }
-        .detail-table tr:nth-child(even) { background-color: #fafafa; }
+    .input-group { margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .input-group.radio-group { justify-content: flex-start; gap: 15px; flex-wrap: wrap; }
+    label { font-weight: bold; font-size: 14px; }
+    .input-wrap { display: flex; align-items: center; }
+    .prefix { margin-right: 4px; font-weight: bold; }
+    .suffix { margin-left: 4px; font-size: 14px; }
+    input[type="number"] { width: 90px; padding: 5px; font-size: 15px; border: 1px solid #ccc; border-radius: 4px; text-align: right; }
+    .note-mini { font-size: 11px; color: #999; margin: -8px 0 10px; }
 
-        /* フッター（クレジット）のスタイル */
-        .footer-credits { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; font-size: 11px; color: #888; text-align: center; line-height: 1.6; }
-        .footer-credits a { color: #0066cc; text-decoration: none; }
-        .footer-credits a:hover { text-decoration: underline; }
-    </style>
-</head>
-<body>
+    .dynamic-container { background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px dashed #ccc; margin-bottom: 15px; }
+    .dynamic-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .dynamic-row:last-child { margin-bottom: 0; }
+    select { padding: 5px; font-size: 14px; border-radius: 4px; border: 1px solid #ccc; }
+    select.buff-type { width: 180px; }
+    .btn-add { background: #5cb85c; color: white; border: none; padding: 4px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-del { background: #d9534f; color: white; border: none; padding: 4px 8px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
 
-    <div class="box">
-        <h1>バスターズ ダメージ計算機</h1>
-        
-        <h2>1. 攻撃力関係</h2>
-        <div class="input-group">
-            <label for="stat-power">ちから:</label>
-            <input type="number" id="stat-power" value="">
-        </div>
-        <div class="input-group">
-            <label for="stat-magic">ようりょく:</label>
-            <input type="number" id="stat-magic" value="">
-        </div>
-        
-        <div class="dynamic-container">
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <span style="font-size:12px; font-weight:bold; color:#666;">攻撃力のバフ・デバフ</span>
-                <button class="btn-add" onclick="addBuffRow('attack')">＋ 追加</button>
-            </div>
-            <div id="attack-buff-list"></div>
-        </div>
+    .checkbox-group { margin: 15px 0; display: flex; align-items: center; gap: 5px; font-weight: bold; color: #cc0000; }
 
-        <div class="input-group radio-group">
-            <label><input type="radio" name="move-type" value="physical" checked> 物理</label>
-            <label><input type="radio" name="move-type" value="magic"> 妖術</label>
-            <label><input type="radio" name="move-type" value="explosion"> 爆発</label>
-        </div>
-        <div class="input-group">
-            <label for="move-base">技威力:</label>
-            <input type="number" id="move-base" value="">
-        </div>
+    button.btn-calc { width: 100%; padding: 12px; font-size: 18px; background-color: #ff9800; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; box-shadow: 0 3px 0 #e68a00; }
+    button.btn-calc:active { transform: translateY(3px); box-shadow: none; }
 
-        <h2>2. 相手のまもり</h2>
+    .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; padding-top: 15px; border-top: 2px dashed #eee; }
+    .result-block { background: #fff5f5; padding: 10px; border-radius: 8px; border: 1px solid #ffe0e0; }
+    .result-block.crit { background: #f5faff; border: 1px solid #e0f0ff; }
+    .result-block h3 { margin: 0 0 8px 0; font-size: 14px; text-align: center; color: #c9302c; }
+    .result-block.crit h3 { color: #0066cc; }
+    .result-item { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; align-items: baseline; }
+    .result-item .p { font-size: 10px; color: #999; margin-left: 4px; font-weight: normal; }
+    .result-item.main { font-size: 16px; font-weight: bold; color: #d9534f; border-top: 1px dashed #ffcccc; padding-top: 3px; }
+    .result-block.crit .result-item.main { color: #0066cc; border-top: 1px dashed #cce5ff; }
+
+    .engine-info { margin-top: 12px; background: #f6f6f6; border-radius: 6px; padding: 8px 10px; font-size: 11px; color: #777;
+        font-family: Consolas, monospace; line-height: 1.6; }
+    .f64-warn { margin-top: 10px; background: #fff3f3; border: 1px solid #ffcccc; border-radius: 6px; padding: 8px 10px;
+        font-size: 12px; color: #a94442; display: none; }
+
+    details { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; }
+    summary { font-weight: bold; color: #0066cc; cursor: pointer; font-size: 16px; }
+    .scroll-area { max-height: 320px; overflow: auto; border: 1px solid #ddd; border-radius: 6px; margin-top: 10px; }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+    .detail-table th, .detail-table td { border-bottom: 1px solid #eee; padding: 5px 6px; text-align: right; white-space: nowrap; }
+    .detail-table th { background-color: #f2f2f2; position: sticky; top: 0; font-size: 11.5px; }
+    .detail-table td:first-child, .detail-table th:first-child { text-align: center; font-weight: bold; }
+    .detail-table tr:nth-child(even) { background-color: #fafafa; }
+    .detail-table tr.rowmax td { color: #c9302c; font-weight: bold; }
+
+    .probbox { margin-top: 20px; padding: 15px; background: #fffdf4; border: 1px solid #ffe8b3; border-radius: 10px; }
+    .probbox h3 { margin: 0 0 10px 0; font-size: 15px; color: #b26a00; border-bottom: 1px solid #ffe8b3; padding-bottom: 5px; }
+    .prob-res { font-weight: bold; margin-left: 10px; }
+    .prob-cnt { display: block; text-align: right; font-size: 10.5px; color: #999; margin-top: 2px; font-family: Consolas, monospace; }
+
+    .footer-credits { margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; font-size: 11px; color: #888; text-align: center; line-height: 1.6; }
+    .footer-credits a { color: #0066cc; text-decoration: none; }
+    .footer-credits a:hover { text-decoration: underline; }
+</style>
+
+<div class="box">
+    <h1>バスターズ ダメージ計算機</h1>
+    <p class="sub">実機再現版 — 3DSと同じfloat32演算・乱数16,777,216通りを厳密集計<br>
+    <span id="build-ver">build 2026-07-18 (9) — モード別表示切替版</span></p>
+
+    <h2>1. 攻撃力関係</h2>
+    <div class="input-group radio-group">
+        <label><input type="radio" name="calc-mode" value="damage" checked onchange="onModeChange()"> ダメージ</label>
+        <label><input type="radio" name="calc-mode" value="heal" onchange="onModeChange()"> 回復</label>
+    </div>
+    <p class="note-mini" id="heal-note" hidden>回復はようりょく参照・まもりの影響なし・乱数あり・上限65535。</p>
+    <div class="input-group" id="row-stat-power">
+        <label for="stat-power">ちから:</label>
+        <input type="number" id="stat-power" value="">
+    </div>
+    <div class="input-group">
+        <label for="stat-magic">ようりょく:</label>
+        <input type="number" id="stat-magic" value="">
+    </div>
+
+    <div class="dynamic-container">
+        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-size:12px; font-weight:bold; color:#666;">攻撃力のバフ・デバフ</span>
+            <button class="btn-add" onclick="addBuffRow('attack')">＋ 追加</button>
+        </div>
+        <div id="attack-buff-list"></div>
+    </div>
+
+    <div class="input-group radio-group" id="move-type-row">
+        <label><input type="radio" name="move-type" value="physical" checked> 物理</label>
+        <label><input type="radio" name="move-type" value="magic"> 妖術</label>
+        <label><input type="radio" name="move-type" value="explosion"> 爆発(平均)</label>
+    </div>
+    <div class="input-group">
+        <label for="move-base">技威力:</label>
+        <input type="number" id="move-base" value="">
+    </div>
+    <div class="input-group">
+        <label for="hit-count">ヒット数(多段技):</label>
+        <input type="number" id="hit-count" value="1" step="1" min="1">
+    </div>
+    <p class="note-mini">多段技は「威力(表示の合計値)÷ヒット数」で1発分を計算(例: ツンツンようじ=400と10)。結果は<b>1ヒットあたり</b>。</p>
+    <div class="input-group">
+        <label for="waza-up" id="waza-up-label">威力アップ%合計:</label>
+        <input type="number" id="waza-up" value="0" step="1">
+    </div>
+    <p class="note-mini" id="waza-up-note">こんしん・必殺威力+装備(やまとの魂等)の合計%。回復モードでは回復量補正%(超回復・虫歯菌等の合計±%)。</p>
+
+    <h2 id="h2-def">2. 相手のまもり</h2>
+    <div id="sec-def">
         <div class="input-group">
             <label for="stat-defense">まもり:</label>
             <input type="number" id="stat-defense" value="">
         </div>
-        
         <div class="dynamic-container">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span style="font-size:12px; font-weight:bold; color:#666;">まもりのバフ・デバフ</span>
@@ -103,13 +128,14 @@
             </div>
             <div id="defense-buff-list"></div>
         </div>
+    </div>
 
-        <h2>3. クリティカル</h2>
+    <h2 id="h2-crit">3. クリティカル</h2>
+    <div id="sec-crit">
         <div class="input-group">
             <label for="crit-super">超クリティカルの数:</label>
-            <input type="number" id="crit-super" value="" min="0">
+            <input type="number" id="crit-super" value="0" min="0">
         </div>
-        
         <div class="dynamic-container">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
                 <span style="font-size:12px; font-weight:bold; color:#666;">クリティカル威力アップ(自由)</span>
@@ -117,7 +143,6 @@
             </div>
             <div id="crit-free-list"></div>
         </div>
-
         <div class="input-group">
             <label for="crit-rate">クリティカル率:</label>
             <div class="input-wrap">
@@ -125,354 +150,595 @@
                 <span class="suffix">%</span>
             </div>
         </div>
+        <p class="note-mini">会心率 = <b>わざ固有値</b>(プレイヤーの通常わざ・必殺技はほぼ10、爆裂・地雷系は0)
+        + いっせん20 + 知ったかぶり10 + 魂(Lv別6〜20) + ギャンブラー/ぶようじん30(<b>相手</b>が持っていても+30)
+        − 神威丸4 + アカネコ/シロイヌ25(対象族のみ)。
+        相手がつやつやボディー・もちガード・じめじめ持ちなら0。
+        判定は乱数×100≤会心率(実機の量子化はこのサイトが自動計算)。倍率はcfg実値1.5×(1+超クリ50%×個数+自由%)。</p>
+    </div>
 
-        <h2>4. その他の補正倍率</h2>
+    <h2>4. その他の補正</h2>
+    <div id="sec-mods">
+      <div id="sec-mods-main">
+        <div class="input-group">
+            <label for="attr-select">属性相性:</label>
+            <select id="attr-select">
+                <option value="1">等倍</option>
+                <option value="w">弱点 ×1.2</option>
+                <option value="r">耐性 ×0.8</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="guard-select">相手のガード:</label>
+            <select id="guard-select">
+                <option value="0">なし</option>
+                <option value="0.5">ガード (×0.5)</option>
+                <option value="0.7">鉄壁 (×0.7)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="guard-boost">ガード強化%(相手側):</label>
+            <input type="number" id="guard-boost" value="0" step="1">
+        </div>
         <div class="dynamic-container">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <span style="font-size:12px; font-weight:bold; color:#666;">自由な補正（ﾆｶﾞﾃ属性1.2倍など）</span>
+                <span style="font-size:12px; font-weight:bold; color:#666;">自由な補正倍率(ミッション補正など)</span>
                 <button class="btn-add" onclick="addModifierRow()">＋ 追加</button>
             </div>
             <div id="modifier-list"></div>
         </div>
-
-        <div class="checkbox-group">
-            <input type="checkbox" id="unlock-limit">
-            <label for="unlock-limit">上限を解放する (9999突破)</label>
+        <div class="dynamic-container">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:12px; font-weight:bold; color:#666;">加算特効%(鬼斬り・オーラ・とどめ等 / 適用順)</span>
+                <button class="btn-add" onclick="addSlayRow()">＋ 追加</button>
+            </div>
+            <div id="slay-list"></div>
         </div>
-
-        <button class="btn-calc" onclick="calculateAll()">ダメージを計算する</button>
-
-        <div class="results-grid">
-            <div class="result-block">
-                <h3>通常ヒット</h3>
-                <div class="result-item"><span>最小 (0.95):</span><span id="p-normal-min">-</span></div>
-                <div class="result-item main"><span>基準 (1.00):</span><span id="p-normal-normal">-</span></div>
-                <div class="result-item"><span>最大 (1.05):</span><span id="p-normal-max">-</span></div>
-            </div>
-            <div class="result-block crit">
-                <h3>クリティカル</h3>
-                <div class="result-item"><span>最小 (0.95):</span><span id="p-crit-min">-</span></div>
-                <div class="result-item main"><span>基準 (1.00):</span><span id="p-crit-normal">-</span></div>
-                <div class="result-item"><span>最大 (1.05):</span><span id="p-crit-max">-</span></div>
-            </div>
+        <div class="input-group">
+            <label for="dmg-cut">被ダメ軽減%合計(相手側):</label>
+            <input type="number" id="dmg-cut" value="0" step="1">
         </div>
-
-        <div style="margin-top: 20px; padding: 15px; background: #fffdf4; border: 1px solid #ffe8b3; border-radius: 10px;">
-            <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #b26a00; border-bottom: 1px solid #ffe8b3; padding-bottom: 5px;">特定ダメージの発生確率</h3>
-            
-            <div class="input-group" style="margin-bottom: 10px;">
-                <label>指定値【以上】が出る確率:</label>
-                <div class="input-wrap">
-                    <input type="number" id="calc-above-input" value="" style="width: 75px;" oninput="updateTargetProbabilities()">
-                    <span class="suffix" style="font-weight: bold; color: #d9534f; margin-left: 10px;"><span id="calc-above-res">-</span> %</span>
-                </div>
-            </div>
-
-            <details style="margin-top: 10px; border-top: 1px dashed #ffe8b3; padding-top: 10px;">
-                <summary style="font-size: 13px; color: #8a6d3b; cursor: pointer;">▶ 範囲指定・【以下】の確率を調べる</summary>
-                
-                <div class="input-group" style="margin-top: 10px; margin-bottom: 10px;">
-                    <label>指定値【以下】が出る確率:</label>
-                    <div class="input-wrap">
-                        <input type="number" id="calc-below-input" value="" style="width: 75px;" oninput="updateTargetProbabilities()">
-                        <span class="suffix" style="font-weight: bold; color: #0066cc; margin-left: 10px;"><span id="calc-below-res">-</span> %</span>
-                    </div>
-                </div>
-
-                <div class="input-group" style="margin-bottom: 0;">
-                    <label>指定【範囲内】が出る確率:</label>
-                    <div class="input-wrap">
-                        <input type="number" id="calc-range-min" value="" style="width: 60px;" oninput="updateTargetProbabilities()">
-                        <span style="margin: 0 3px;">〜</span>
-                        <input type="number" id="calc-range-max" value="" style="width: 60px;" oninput="updateTargetProbabilities()">
-                        <span class="suffix" style="font-weight: bold; color: #5cb85c; margin-left: 10px;"><span id="calc-range-res">-</span> %</span>
-                    </div>
-                </div>
-            </details>
+      </div>
+        <div class="input-group" id="dup-row" hidden>
+            <label for="dmg-up">回復量アップ%(受け側):</label>
+            <input type="number" id="dmg-up" value="0" step="1">
         </div>
+        <p class="note-mini" id="dup-note" hidden>快眠・ふじのやまの魂・大やもりの魂・超回復など(回復される側が持つ効果)。</p>
+    </div>
 
-        <details>
-            <summary>▶ 詳しく表示（確率分布表）</summary>
-            <div class="scroll-area">
-                <table class="detail-table">
-                    <thead>
-                        <tr>
-                            <th>出うるダメージ</th>
-                            <th>確率</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detail-list"></tbody>
-                </table>
-            </div>
-        </details>
+    <div class="checkbox-group" id="unlock-row">
+        <input type="checkbox" id="unlock-limit">
+        <label for="unlock-limit">9999上限を解除する(内部上限65535)</label>
+    </div>
 
-        <div class="footer-credits">
-            参考元：<a href="https://docs.google.com/spreadsheets/d/1-u5YHsx02AJx9fr_-JwL1x6Pq3kwTBoxIxVEOS-Pb-U" target="_blank">J4th7th 様</a> / <a href="https://togenyanweb.appspot.com/Yokai/" target="_blank">togenyan 様</a><br>
-            Special Thanks: Gemini (AI)
+    <button class="btn-calc" onclick="calculateAll()">計算する</button>
+
+    <div class="results-grid">
+        <div class="result-block">
+            <h3 id="res-title-n">通常ヒット</h3>
+            <div class="result-item"><span>最小 (×0.95):</span><span><span id="p-normal-min">-</span><span class="p" id="p-normal-min-p"></span></span></div>
+            <div class="result-item main"><span>基準 (×1.00):</span><span id="p-normal-normal">-</span></div>
+            <div class="result-item"><span>最大 (×1.05):</span><span><span id="p-normal-max">-</span><span class="p" id="p-normal-max-p"></span></span></div>
+        </div>
+        <div class="result-block crit" id="crit-block">
+            <h3>クリティカル</h3>
+            <div class="result-item"><span>最小 (×0.95):</span><span><span id="p-crit-min">-</span><span class="p" id="p-crit-min-p"></span></span></div>
+            <div class="result-item main"><span>基準 (×1.00):</span><span id="p-crit-normal">-</span></div>
+            <div class="result-item"><span>最大 (×1.05):</span><span><span id="p-crit-max">-</span><span class="p" id="p-crit-max-p"></span></span></div>
         </div>
     </div>
 
-    <script>
-        // 確率計算用にデータを一時保持するグローバル変数
-        let globalDamageWeights = {};
-        let globalLoopCount = 0;
+    <div class="engine-info" id="engine-info">—</div>
+    <div class="f64-warn" id="f64-warn"></div>
 
-        // --- 行の動的追加ロジック ---
-        function addBuffRow(type) {
-            const container = document.getElementById(type + '-buff-list');
-            const row = document.createElement('div');
-            row.className = 'dynamic-row';
-            
-            let options = '';
-            if (type === 'attack') {
-                options = `
-                    <option value="p_up">ちから(アップ)</option>
-                    <option value="p_down">ちから(ダウン)</option>
-                    <option value="m_up">ようりょく(アップ)</option>
-                    <option value="m_down">ようりょく(ダウン)</option>
-                    <option value="all_up">全ステータス(アップ)</option>
-                    <option value="all_down">全ステータス(ダウン)</option>
-                    <option value="free">攻撃力(自由)</option>
-                `;
-            } else {
-                options = `
-                    <option value="d_up">まもり(アップ)</option>
-                    <option value="d_down">まもり(ダウン)</option>
-                    <option value="all_up">全ステータス(アップ)</option>
-                    <option value="all_down">全ステータス(ダウン)</option>
-                    <option value="free">まもり(自由)</option>
-                `;
-            }
+    <div class="probbox">
+        <h3>特定ダメージの発生確率(会心率加重・厳密値)</h3>
 
-            row.innerHTML = `
-                <select class="buff-type" onchange="updateSign(this)">${options}</select>
+        <div class="input-group" style="margin-bottom: 4px;">
+            <label>指定値【以上】が出る確率:</label>
+            <div class="input-wrap">
+                <input type="number" id="calc-above-input" value="" style="width: 75px;" oninput="updateTargetProbabilities()">
+                <span class="suffix prob-res" style="color:#d9534f;"><span id="calc-above-res">-</span> %</span>
+            </div>
+        </div>
+        <span class="prob-cnt" id="calc-above-cnt"></span>
+
+        <details style="margin-top: 10px; border-top: 1px dashed #ffe8b3; padding-top: 10px;">
+            <summary style="font-size: 13px; color: #8a6d3b; cursor: pointer;">▶ 範囲指定・【以下】の確率を調べる</summary>
+
+            <div class="input-group" style="margin-top: 10px; margin-bottom: 4px;">
+                <label>指定値【以下】が出る確率:</label>
                 <div class="input-wrap">
-                    <span class="prefix">+</span>
-                    <input type="number" class="buff-val" value="0" step="0.1">
-                    <span class="suffix">%</span>
+                    <input type="number" id="calc-below-input" value="" style="width: 75px;" oninput="updateTargetProbabilities()">
+                    <span class="suffix prob-res" style="color:#0066cc;"><span id="calc-below-res">-</span> %</span>
                 </div>
-                <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
-            `;
-            container.appendChild(row);
-            updateSign(row.querySelector('.buff-type'));
-        }
+            </div>
+            <span class="prob-cnt" id="calc-below-cnt"></span>
 
-        function updateSign(selectEl) {
-            const row = selectEl.parentElement;
-            const prefix = row.querySelector('.prefix');
-            if (selectEl.value.includes('down')) {
-                prefix.textContent = '－';
-            } else {
-                prefix.textContent = '＋';
-            }
-            
-            if (selectEl.value === 'free') {
-                const list = selectEl.parentElement.parentElement;
-                const frees = Array.from(list.querySelectorAll('.buff-type')).filter(s => s.value === 'free');
-                if (frees.length > 1) {
-                    alert('「自由」枠は1つしか追加できません。');
-                    selectEl.selectedIndex = 0;
-                    prefix.textContent = '＋';
-                }
-            }
-        }
-
-        function addCritRow() {
-            const container = document.getElementById('crit-free-list');
-            const row = document.createElement('div');
-            row.className = 'dynamic-row';
-            row.innerHTML = `
-                <span style="font-size:14px;">クリティカル威力アップ(自由)</span>
+            <div class="input-group" style="margin-bottom: 4px; margin-top: 8px;">
+                <label>指定【範囲内】が出る確率:</label>
                 <div class="input-wrap">
-                    <span class="prefix">＋</span>
-                    <input type="number" class="crit-val" value="0" step="0.1">
-                    <span class="suffix">%</span>
+                    <input type="number" id="calc-range-min" value="" style="width: 60px;" oninput="updateTargetProbabilities()">
+                    <span style="margin: 0 3px;">〜</span>
+                    <input type="number" id="calc-range-max" value="" style="width: 60px;" oninput="updateTargetProbabilities()">
+                    <span class="suffix prob-res" style="color:#5cb85c;"><span id="calc-range-res">-</span> %</span>
                 </div>
-                <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
-            `;
-            container.appendChild(row);
+            </div>
+            <span class="prob-cnt" id="calc-range-cnt"></span>
+        </details>
+    </div>
+
+    <details open>
+        <summary>▶ 詳しく表示(確率分布表・回数は各2²⁴中)</summary>
+        <div class="scroll-area">
+            <table class="detail-table">
+                <thead>
+                    <tr id="tbl-head"></tr>
+                </thead>
+                <tbody id="detail-list"></tbody>
+            </table>
+        </div>
+    </details>
+
+    <div class="footer-credits">
+        参考元:<a href="https://docs.google.com/spreadsheets/d/1-u5YHsx02AJx9fr_-JwL1x6Pq3kwTBoxIxVEOS-Pb-U" target="_blank" rel="noopener">J4th7th 様</a> / <a href="https://togenyanweb.appspot.com/Yokai/" target="_blank" rel="noopener">togenyan 様</a><br>
+        Special Thanks: Gemini (AI)<br>
+        実機bit再現エンジン: code.bin解析(計算関数 VA 0x3BB4E8 / 乱数 0x13D79C)に基づく — Claude (AI)
+    </div>
+</div>
+
+<script>
+"use strict";
+/* ============================================================
+   実機再現エンジン
+   3DS(ARM11 VFPv2)は全段float32・非融合積和。JSでは Math.fround で再現。
+   乱数: xorshift128下位24bit → k/(2^24-1) (k=0..16,777,215 の一様)
+   倍率: f32( 0.95 + f32( rand01 × 0.1 ) )
+   ============================================================ */
+const F = Math.fround;
+const bitsF = u => new Float32Array(new Uint32Array([u]).buffer)[0];
+const C_RAND = bitsF(0x33800001);  // float32(1/(2^24-1))
+const INV70  = bitsF(0x3C6A0EA1);  // 1/70 (ダメージ)
+const INV160 = bitsF(0x3BCCCCCD);  // 1/160 (回復)
+const C001   = bitsF(0x3C23D70A);  // 0.01f
+const C01    = bitsF(0x3DCCCCCD);  // 0.1f
+const C095   = bitsF(0x3F733333);  // 0.95f
+const W12    = bitsF(0x3F99999A);  // 弱点1.2 (cfg実値)
+const W08    = bitsF(0x3F4CCCCD);  // 耐性0.8 (cfg実値)
+const CRITBASE = F(1.5);           // 会心倍率 (cfg実値)
+const KMAX = 16777215;
+const TOTAL = 16777216;
+
+function mult32(k){ return F(C095 + F(F(F(k) * C_RAND) * C01)); }
+
+// 会心判定: rand01×100 ≤ 会心率 (float32, ≤なので同値は会心)
+const C100f = F(100);
+function rollVal(k){ return F(F(F(k) * C_RAND) * C100f); }
+function critCount(c){           // 会心になる k の個数(厳密)
+    if (c <= 0) return 0;
+    const cf = F(c);
+    if (rollVal(KMAX) <= cf) return TOTAL;
+    let lo = 0, hi = KMAX;       // 最小の「roll > c」となる k = 会心kの個数
+    while (hi - lo > 1){
+        const m = (lo + hi) >>> 1;
+        if (rollVal(m) > cf) hi = m; else lo = m;
+    }
+    return hi;
+}
+
+// ---- 乱数直前までの値(通常/会心で別) ----
+function preRand(p, isCrit){
+    let s16;
+    if (p.moveType === "explosion"){
+        // 平均: それぞれのバフを掛けてから加算 → ×cfg0.5
+        s16 = F(F(F(F(p.powerRate)) * F(p.rawPower)) * C001);
+        s16 = F(s16 + F(F(F(F(p.magicRate)) * F(p.rawMagic)) * C001));
+        s16 = F(F(0.5) * s16);
+    } else {
+        const stat = p.moveType === "physical" ? p.rawPower : p.rawMagic;
+        const rate = p.moveType === "physical" ? p.powerRate : p.magicRate;
+        s16 = F(F(F(F(rate)) * C001) * F(stat));
+    }
+    let base = F(s16 * (p.heal ? INV160 : INV70));
+    if (p.heal){
+        // 回復量補正: ×f32(f32(100+ν)×0.01)
+        if (p.wazaUp !== 0) base = F(base * F(F(F(100) + F(p.wazaUp)) * C001));
+    } else if (p.wazaUp > 0){
+        base = F(base + F(F(base * F(p.wazaUp)) * C001));
+    }
+
+    // 防御除数 s27 = 100/(まもり補正後+100)。
+    // 回復はまもりの影響なし(実機確認済み) → 除数は100/100=1
+    const defStat = p.heal ? 0 : p.rawDefense;
+    const defRate = p.heal ? 100 : p.defRate;
+    let d = F(F(F(F(defRate)) * C001) * F(defStat));
+    if (d < 0) d = 0;
+    const s27 = F(F(100) / F(d + F(100)));
+
+    // 実機の順序: dmg = f32( f32(威力÷ヒット数) × f32(base × s27) )
+    // (威力÷ヒット数はわざレコード+0x68/+0x64、乗算はダメージ計算関数内 VA 0x3BBFA8)
+    const core = F(base * s27);
+    let dmg = F(F(F(p.moveBase) / F(p.hits)) * core);
+    // 自由補正倍率(順に・ダメージのみ)
+    if (!p.heal) for (const m of p.mods) dmg = F(F(m) * dmg);
+    if (!p.heal){
+        if (isCrit) dmg = F(p.critMult * dmg);
+        if (p.attr === "w") dmg = F(W12 * dmg);
+        else if (p.attr === "r") dmg = F(W08 * dmg);
+        if (p.guard > 0){
+            const g = F(p.guard);
+            let s0 = F(F(1) - g);
+            s0 = F(s0 - F(F(g * F(p.guardBoost)) * C001));
+            dmg = F(s0 * dmg);
         }
+    }
+    return dmg;
+}
+// ---- 乱数以降 ----
+function postRand(d0, m, p){
+    let dmg = F(m * d0);
+    if (p.heal){
+        // 受け側の回復量アップ(快眠・超回復等) — 回復専用ブロック(0x3BC2C0-)の再現
+        if (p.dmgUp !== 0) dmg = F(dmg + F(F(dmg * F(p.dmgUp)) * C001));
+    } else {
+        for (const pct of p.slays){ dmg = F(dmg + F(F(pct) * F(dmg * C001))); }
+        if (p.dmgCut > 0) dmg = F(F(F(F(100) - F(p.dmgCut)) * C001) * dmg);
+    }
+    if (dmg <= 1) dmg = 1;
+    if (dmg > 65535) dmg = 65535;
+    if (!p.heal && !p.unlock && dmg > 9999) dmg = 9999;
+    return Math.trunc(dmg);
+}
+// ---- float64ナイーブ版(参考比較用) ----
+function naive64(p, isCrit, factor){
+    let s;
+    if (p.moveType === "explosion")
+        s = (p.powerRate * p.rawPower * 0.01 + p.magicRate * p.rawMagic * 0.01) * 0.5;
+    else
+        s = (p.moveType === "physical" ? p.powerRate * 0.01 * p.rawPower : p.magicRate * 0.01 * p.rawMagic);
+    let base = s * (p.heal ? 1/160 : 1/70);
+    if (p.heal){ if (p.wazaUp !== 0) base *= (100 + p.wazaUp) * 0.01; }
+    else if (p.wazaUp > 0) base += base * p.wazaUp * 0.01;
+    const defStat64 = p.heal ? 0 : p.rawDefense;
+    const defRate64 = p.heal ? 100 : p.defRate;
+    let dmg = base * (100 / (Math.max(0, defRate64 * 0.01 * defStat64) + 100)) * (p.moveBase / p.hits);
+    if (!p.heal) for (const m of p.mods) dmg *= m;
+    if (!p.heal){
+        if (isCrit) dmg *= p.critMult;
+        if (p.attr === "w") dmg *= 1.2; else if (p.attr === "r") dmg *= 0.8;
+        if (p.guard > 0) dmg *= (1 - p.guard - p.guard * p.guardBoost * 0.01);
+    }
+    dmg *= factor;
+    if (p.heal){
+        if (p.dmgUp !== 0) dmg += dmg * p.dmgUp * 0.01;
+    } else {
+        for (const pct of p.slays) dmg += pct * dmg * 0.01;
+        if (p.dmgCut > 0) dmg *= (100 - p.dmgCut) * 0.01;
+    }
+    if (dmg <= 1) dmg = 1;
+    if (dmg > 65535) dmg = 65535;
+    if (!p.heal && !p.unlock && dmg > 9999) dmg = 9999;
+    return Math.trunc(dmg);
+}
 
-        function addModifierRow() {
-            const container = document.getElementById('modifier-list');
-            const row = document.createElement('div');
-            row.className = 'dynamic-row';
-            row.innerHTML = `
-                <span style="font-size:14px;">補正倍率</span>
-                <div class="input-wrap">
-                    <input type="number" class="mod-val" value="1.0" step="0.05">
-                    <span class="suffix">倍</span>
-                </div>
-                <button class="btn-del" onclick="this.parentElement.remove()">✕</button>
-            `;
-            container.appendChild(row);
+// ---- 分布(単調性を使った境界二分探索: 2^24全数と等価の厳密値) ----
+function firstK(fn, n){
+    if (fn(KMAX) < n) return KMAX + 1;
+    if (fn(0) >= n) return 0;
+    let lo = 0, hi = KMAX;
+    while (hi - lo > 1){
+        const mid = (lo + hi) >>> 1;
+        if (fn(mid) >= n) hi = mid; else lo = mid;
+    }
+    return hi;
+}
+function distribution(fn){
+    const dmin = fn(0), dmax = fn(KMAX);
+    const rows = [];
+    let kPrev = 0;
+    for (let n = dmin + 1; n <= dmax + 1; n++){
+        const k = (n <= dmax) ? firstK(fn, n) : KMAX + 1;
+        if (k > kPrev) rows.push({ v: n - 1, count: k - kPrev });
+        kPrev = k;
+    }
+    if (!rows.length) rows.push({ v: dmin, count: TOTAL });
+    return rows;
+}
+
+// ============ UI: 動的行(元サイトの仕様のまま) ============
+function addBuffRow(type) {
+    const container = document.getElementById(type + '-buff-list');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    let options = '';
+    if (type === 'attack') {
+        options = `
+            <option value="p_up">ちから(アップ)</option>
+            <option value="p_down">ちから(ダウン)</option>
+            <option value="m_up">ようりょく(アップ)</option>
+            <option value="m_down">ようりょく(ダウン)</option>
+            <option value="all_up">全ステータス(アップ)</option>
+            <option value="all_down">全ステータス(ダウン)</option>
+            <option value="free">攻撃力(自由)</option>`;
+    } else {
+        options = `
+            <option value="d_up">まもり(アップ)</option>
+            <option value="d_down">まもり(ダウン)</option>
+            <option value="all_up">全ステータス(アップ)</option>
+            <option value="all_down">全ステータス(ダウン)</option>
+            <option value="free">まもり(自由)</option>`;
+    }
+    row.innerHTML = `
+        <select class="buff-type" onchange="updateSign(this)">${options}</select>
+        <div class="input-wrap">
+            <span class="prefix">＋</span>
+            <input type="number" class="buff-val" value="0" step="0.1">
+            <span class="suffix">%</span>
+        </div>
+        <button class="btn-del" onclick="this.parentElement.remove()">✕</button>`;
+    container.appendChild(row);
+    updateSign(row.querySelector('.buff-type'));
+}
+function updateSign(selectEl) {
+    const row = selectEl.parentElement;
+    const prefix = row.querySelector('.prefix');
+    prefix.textContent = selectEl.value.includes('down') ? '－' : '＋';
+    if (selectEl.value === 'free') {
+        const list = selectEl.parentElement.parentElement;
+        const frees = Array.from(list.querySelectorAll('.buff-type')).filter(s => s.value === 'free');
+        if (frees.length > 1) {
+            alert('「自由」枠は1つしか追加できません。');
+            selectEl.selectedIndex = 0;
+            prefix.textContent = '＋';
         }
+    }
+}
+function addCritRow() {
+    const container = document.getElementById('crit-free-list');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <span style="font-size:14px;">クリティカル威力アップ(自由)</span>
+        <div class="input-wrap">
+            <span class="prefix">＋</span>
+            <input type="number" class="crit-val" value="0" step="0.1">
+            <span class="suffix">%</span>
+        </div>
+        <button class="btn-del" onclick="this.parentElement.remove()">✕</button>`;
+    container.appendChild(row);
+}
+function addModifierRow() {
+    const container = document.getElementById('modifier-list');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <span style="font-size:14px;">補正倍率</span>
+        <div class="input-wrap">
+            <input type="number" class="mod-val" value="1.0" step="0.05">
+            <span class="suffix">倍</span>
+        </div>
+        <button class="btn-del" onclick="this.parentElement.remove()">✕</button>`;
+    container.appendChild(row);
+}
+function addSlayRow() {
+    const container = document.getElementById('slay-list');
+    const row = document.createElement('div');
+    row.className = 'dynamic-row';
+    row.innerHTML = `
+        <span style="font-size:14px;">特効・加算補正</span>
+        <div class="input-wrap">
+            <span class="prefix">＋</span>
+            <input type="number" class="slay-val" value="0" step="1">
+            <span class="suffix">%</span>
+        </div>
+        <button class="btn-del" onclick="this.parentElement.remove()">✕</button>`;
+    container.appendChild(row);
+}
+function clamp(val, min, max){ return Math.max(min, Math.min(max, val)); }
 
-        function clamp(val, min, max) {
-            return Math.max(min, Math.min(max, val));
+function onModeChange(){
+    const heal = document.querySelector('input[name="calc-mode"]:checked').value === "heal";
+    if (heal) document.querySelector('input[name="move-type"][value="magic"]').checked = true;
+    else document.querySelector('input[name="move-type"][value="physical"]').checked = true;
+    // ダメージ/回復で関係ない項目は表示しない
+    document.getElementById('heal-note').hidden = !heal;
+    document.getElementById('dup-row').hidden = !heal;
+    document.getElementById('dup-note').hidden = !heal;
+    document.getElementById('row-stat-power').hidden = heal;   // ちから
+    document.getElementById('move-type-row').hidden = heal;    // 物理/妖術/爆発(回復は妖術固定)
+    document.getElementById('h2-def').hidden = heal;
+    document.getElementById('sec-def').hidden = heal;          // まもり一式
+    document.getElementById('h2-crit').hidden = heal;
+    document.getElementById('sec-crit').hidden = heal;         // クリティカル一式
+    document.getElementById('sec-mods-main').hidden = heal;    // 属性/ガード/倍率/特効/軽減
+    document.getElementById('unlock-row').hidden = heal;       // 9999解除(回復は常に65535)
+    document.getElementById('crit-block').hidden = heal;       // 結果のクリティカル欄
+    document.querySelector('.results-grid').style.gridTemplateColumns = heal ? '1fr' : '1fr 1fr';
+    document.getElementById('waza-up-label').textContent = heal ? '回復量補正%合計:' : '威力アップ%合計:';
+    document.getElementById('res-title-n').textContent = heal ? '回復量' : '通常ヒット';
+}
+
+// ============ メイン計算 ============
+let G = null;  // { rowsN, rowsC, critRate, heal }
+
+function readAll(){
+    const heal = document.querySelector('input[name="calc-mode"]:checked').value === "heal";
+    const num = id => Number(document.getElementById(id).value) || 0;
+
+    let attBuffSum = { p_up:0, p_down:0, m_up:0, m_down:0, all_up:0, all_down:0, free:0 };
+    document.querySelectorAll('#attack-buff-list .dynamic-row').forEach(row => {
+        attBuffSum[row.querySelector('.buff-type').value] += Number(row.querySelector('.buff-val').value) || 0;
+    });
+    const p_up = clamp(attBuffSum.p_up, 0, 100), p_down = clamp(attBuffSum.p_down, 0, 100);
+    const m_up = clamp(attBuffSum.m_up, 0, 100), m_down = clamp(attBuffSum.m_down, 0, 100);
+    const aU = clamp(attBuffSum.all_up, 0, 50), aD = clamp(attBuffSum.all_down, 0, 50);
+    const powerRate = 100 + attBuffSum.free + p_up - p_down + aU - aD;
+    const magicRate = 100 + attBuffSum.free + m_up - m_down + aU - aD;
+
+    let defBuffSum = { d_up:0, d_down:0, all_up:0, all_down:0, free:0 };
+    document.querySelectorAll('#defense-buff-list .dynamic-row').forEach(row => {
+        defBuffSum[row.querySelector('.buff-type').value] += Number(row.querySelector('.buff-val').value) || 0;
+    });
+    const dU = clamp(defBuffSum.d_up, 0, 700), dD = clamp(defBuffSum.d_down, 0, 80);
+    const daU = clamp(defBuffSum.all_up, 0, 350), daD = clamp(defBuffSum.all_down, 0, 50);
+    const defRate = 100 + defBuffSum.free + dU - dD + daU - daD;
+
+    let critFree = 0;
+    document.querySelectorAll('#crit-free-list .crit-val').forEach(i => critFree += Number(i.value) || 0);
+    const superCnt = num('crit-super');
+    // 会心倍率 = f32( 1.5 + f32( 1.5 × f32( (50×個数+自由%) × 0.01 ) ) )
+    const effPct = 50 * superCnt + critFree;
+    const critMult = effPct !== 0 ? F(CRITBASE + F(CRITBASE * F(F(effPct) * C001))) : CRITBASE;
+
+    const mods = [];
+    document.querySelectorAll('#modifier-list .mod-val').forEach(i => {
+        const v = Number(i.value); if (!isNaN(v) && v !== 1) mods.push(v);
+    });
+    const slays = [];
+    document.querySelectorAll('#slay-list .slay-val').forEach(i => {
+        const v = Number(i.value); if (!isNaN(v) && v !== 0) slays.push(v);
+    });
+
+    return {
+        heal,
+        rawPower: num('stat-power'), rawMagic: num('stat-magic'), rawDefense: num('stat-defense'),
+        powerRate, magicRate, defRate,
+        moveType: document.querySelector('input[name="move-type"]:checked').value,
+        moveBase: num('move-base'), hits: Math.max(1, Math.trunc(num('hit-count')) || 1),
+        wazaUp: num('waza-up'),
+        attr: document.getElementById('attr-select').value,
+        guard: Number(document.getElementById('guard-select').value),
+        guardBoost: num('guard-boost'),
+        dmgCut: num('dmg-cut'), dmgUp: num('dmg-up'),
+        critMult, critRate: heal ? 0 : clamp(num('crit-rate'), 0, 300),
+        mods, slays,
+        unlock: document.getElementById('unlock-limit').checked,
+    };
+}
+
+function fmtPct(x, digits){
+    if (x === 0) return "0";
+    if (x >= 0.001) return x.toFixed(digits ?? 3);
+    return x.toPrecision(2);
+}
+function fmtFrac(count){
+    if (count <= 0) return "";
+    return "≈1/" + Math.round(TOTAL / count).toLocaleString();
+}
+
+function calculateAll(){
+    const p = readAll();
+    const d0N = preRand(p, false);
+    const d0C = preRand(p, true);
+    const fnN = k => postRand(d0N, mult32(k), p);
+    const fnC = k => postRand(d0C, mult32(k), p);
+    const rowsN = distribution(fnN);
+    const rowsC = p.heal ? rowsN : distribution(fnC);
+    const Nc = p.heal ? 0 : critCount(p.critRate);   // 会心になるkの厳密個数
+    G = { rowsN, rowsC, Nc, critRate: p.critRate, heal: p.heal };
+
+    // 上部パネル: 最小/基準/最大 + 端の確率
+    const m100 = F(1.0);
+    const set = (id, v) => document.getElementById(id).textContent = v;
+    set('p-normal-min', rowsN[0].v);
+    set('p-normal-normal', postRand(d0N, m100, p));
+    set('p-normal-max', rowsN[rowsN.length-1].v);
+    set('p-normal-min-p', fmtPct(rowsN[0].count / TOTAL * 100) + "%");
+    set('p-normal-max-p', fmtPct(rowsN[rowsN.length-1].count / TOTAL * 100) + "%");
+    set('p-crit-min', rowsC[0].v);
+    set('p-crit-normal', postRand(d0C, m100, p));
+    set('p-crit-max', rowsC[rowsC.length-1].v);
+    set('p-crit-min-p', fmtPct(rowsC[0].count / TOTAL * 100) + "%");
+    set('p-crit-max-p', fmtPct(rowsC[rowsC.length-1].count / TOTAL * 100) + "%");
+
+    // エンジン情報
+    const b32 = new Uint32Array(new Float32Array([d0N]).buffer)[0];
+    document.getElementById('engine-info').innerHTML =
+        `乱数直前値 D0 = ${d0N.toPrecision(9)} (float32 bits 0x${b32.toString(16).toUpperCase().padStart(8,"0")})` +
+        (p.heal ? "" : ` / 会心時 ${d0C.toPrecision(9)}`) +
+        `<br>乱数倍率: ×0.95(確率5/2²⁴)〜×1.05(確率18/2²⁴≈93万分の1)の16,777,216通り` +
+        (p.heal ? "" : `<br>会心判定: ${Nc.toLocaleString()}/2²⁴ = ${(Nc/TOTAL*100).toFixed(7)}%(入力${p.critRate}%を実機の乱数判定に量子化)`);
+
+    // float64との差チェック
+    const n64min = naive64(p, false, 0.95), n64max = naive64(p, false, 1.05);
+    const warn = document.getElementById('f64-warn');
+    if (n64min !== rowsN[0].v || n64max !== rowsN[rowsN.length-1].v){
+        warn.style.display = "block";
+        warn.innerHTML = `⚠ <b>倍精度計算とズレる設定です</b>: 電卓/通常のJSでは ${n64min}〜${n64max} ですが、
+            実機(float32)は ${rowsN[0].v}〜${rowsN[rowsN.length-1].v} になります。`;
+    } else warn.style.display = "none";
+
+    // 分布表(通常/会心 併記 + 合成)
+    const map = new Map();
+    for (const r of rowsN){ map.set(r.v, { n: r.count, c: 0 }); }
+    if (!p.heal) for (const r of rowsC){
+        const e = map.get(r.v) || { n: 0, c: 0 }; e.c = r.count; map.set(r.v, e);
+    }
+    const keys = [...map.keys()].sort((a,b)=>a-b);
+    // 会心率も厳密カウントで加重: 合成 = (通常回数×(2²⁴−Nc) + 会心回数×Nc) / 2⁴⁸
+    const wN = (TOTAL - Nc) / TOTAL, wC = Nc / TOTAL;
+    const head = document.getElementById('tbl-head');
+    if (p.heal){
+        head.innerHTML = "<th>回復量</th><th>回数(/2²⁴)</th><th>確率%</th><th>目安</th>";
+    } else {
+        head.innerHTML = "<th>ダメージ</th><th>通常 回数(/2²⁴)</th><th>通常%</th><th>会心 回数(/2²⁴)</th><th>会心%</th><th>合成%</th>";
+    }
+    let html = "";
+    const vMaxN = rowsN[rowsN.length-1].v, vMaxC = rowsC[rowsC.length-1].v;
+    for (const v of keys){
+        const e = map.get(v);
+        const pn = e.n / TOTAL * 100, pc = e.c / TOTAL * 100;
+        const isMax = v === vMaxN || (!p.heal && v === vMaxC);
+        if (p.heal){
+            html += `<tr${isMax?' class="rowmax"':''}><td>${v}</td><td>${e.n.toLocaleString()}</td><td>${fmtPct(pn,4)}</td><td>${fmtFrac(e.n)}</td></tr>`;
+        } else {
+            const comb = pn * wN + pc * wC;
+            html += `<tr${isMax?' class="rowmax"':''}><td>${v}</td>` +
+                `<td>${e.n ? e.n.toLocaleString() : "–"}</td><td>${e.n ? fmtPct(pn,4) : "–"}</td>` +
+                `<td>${e.c ? e.c.toLocaleString() : "–"}</td><td>${e.c ? fmtPct(pc,4) : "–"}</td>` +
+                `<td>${fmtPct(comb,4)}</td></tr>`;
         }
+    }
+    document.getElementById('detail-list').innerHTML = html;
+    updateTargetProbabilities();
+}
 
-        function clampDamage(dmg, unlock) {
-            if (dmg < 1) return 1;
-            if (!unlock && dmg > 9999) return 9999;
-            return dmg;
-        }
+// ---- 指定値以上/以下/範囲(会心率加重・厳密) ----
+function updateTargetProbabilities(){
+    if (!G) return;
+    const val = id => document.getElementById(id).value;
+    const wN = (TOTAL - G.Nc) / TOTAL, wC = G.Nc / TOTAL;
+    function tally(pred){
+        let cn = 0, cc = 0;
+        for (const r of G.rowsN) if (pred(r.v)) cn += r.count;
+        if (!G.heal) for (const r of G.rowsC) if (pred(r.v)) cc += r.count;
+        const pct = (cn / TOTAL * 100) * wN + (cc / TOTAL * 100) * wC;
+        return { cn, cc, pct };
+    }
+    function show(resId, cntId, t, has){
+        document.getElementById(resId).textContent = has ? fmtPct(t.pct, 4) : "-";
+        document.getElementById(cntId).textContent = !has ? "" :
+            (G.heal || G.Nc === 0)
+              ? `回数: ${t.cn.toLocaleString()} / 2²⁴ ${fmtFrac(t.cn)}`
+              : `通常 ${t.cn.toLocaleString()}/2²⁴・会心 ${t.cc.toLocaleString()}/2²⁴(会心判定 ${G.Nc.toLocaleString()}/2²⁴で加重)`;
+    }
+    const a = val('calc-above-input');
+    show('calc-above-res','calc-above-cnt', a==="" ? {cn:0,cc:0,pct:0} : tally(v => v >= Number(a)), a!=="");
+    const b = val('calc-below-input');
+    show('calc-below-res','calc-below-cnt', b==="" ? {cn:0,cc:0,pct:0} : tally(v => v <= Number(b)), b!=="");
+    const r1 = val('calc-range-min'), r2 = val('calc-range-max');
+    const hasR = r1!=="" && r2!=="";
+    show('calc-range-res','calc-range-cnt', hasR ? tally(v => v >= Number(r1) && v <= Number(r2)) : {cn:0,cc:0,pct:0}, hasR);
+}
 
-        function calculateAll() {
-            const unlock = document.getElementById('unlock-limit').checked;
+// マウスホイールで数値入力が変わるのを防止
+document.addEventListener("wheel", (e) => {
+    const t = e.target;
+    if (t && t.tagName === "INPUT" && t.type === "number" && document.activeElement === t){
+        e.preventDefault();
+    }
+}, { passive: false });
 
-            let rawPower = Number(document.getElementById('stat-power').value);
-            let rawMagic = Number(document.getElementById('stat-magic').value);
-            let rawDefense = Number(document.getElementById('stat-defense').value);
-
-            let attBuffSum = { p_up:0, p_down:0, m_up:0, m_down:0, all_up:0, all_down:0, free:0 };
-            document.querySelectorAll('#attack-buff-list .dynamic-row').forEach(row => {
-                let type = row.querySelector('.buff-type').value;
-                let val = Number(row.querySelector('.buff-val').value);
-                attBuffSum[type] += val;
-            });
-
-            let p_up_final = clamp(attBuffSum.p_up, 0, 100);
-            let p_down_final = clamp(attBuffSum.p_down, 0, 100);
-            let m_up_final = clamp(attBuffSum.m_up, 0, 100);
-            let m_down_final = clamp(attBuffSum.m_down, 0, 100);
-            let all_up_final_att = clamp(attBuffSum.all_up, 0, 50);
-            let all_down_final_att = clamp(attBuffSum.all_down, 0, 50);
-
-            let powerRate = 100 + attBuffSum.free + p_up_final - p_down_final + all_up_final_att - all_down_final_att;
-            let magicRate = 100 + attBuffSum.free + m_up_final - m_down_final + all_up_final_att - all_down_final_att;
-            
-            let finalPower = Math.max(0, rawPower * (powerRate / 100));
-            let finalMagic = Math.max(0, rawMagic * (magicRate / 100));
-
-            let a = 0;
-            const moveType = document.querySelector('input[name="move-type"]:checked').value;
-            if (moveType === 'physical') {
-                a = finalPower;
-            } else if (moveType === 'magic') {
-                a = finalMagic;
-            } else if (moveType === 'explosion') {
-                a = (finalPower + finalMagic) / 2;
-            }
-
-            let b = Number(document.getElementById('move-base').value);
-
-            let defBuffSum = { d_up:0, d_down:0, all_up:0, all_down:0, free:0 };
-            document.querySelectorAll('#defense-buff-list .dynamic-row').forEach(row => {
-                let type = row.querySelector('.buff-type').value;
-                let val = Number(row.querySelector('.buff-val').value);
-                defBuffSum[type] += val;
-            });
-
-            let d_up_final = clamp(defBuffSum.d_up, 0, 700);
-            let d_down_final = clamp(defBuffSum.d_down, 0, 80);
-            let all_up_final_def = clamp(defBuffSum.all_up, 0, 350);
-            let all_down_final_def = clamp(defBuffSum.all_down, 0, 50);
-
-            let defRate = 100 + defBuffSum.free + d_up_final - d_down_final + all_up_final_def - all_down_final_def;
-            let d = Math.max(0, rawDefense * (defRate / 100));
-
-            let superCritCount = Number(document.getElementById('crit-super').value);
-            let critFreeSum = 0;
-            document.querySelectorAll('#crit-free-list .crit-val').forEach(input => {
-                critFreeSum += Number(input.value);
-            });
-            let critModifier = 1.5 * (1 + 0.5 * superCritCount + (critFreeSum / 100));
-            let critRate = clamp(Number(document.getElementById('crit-rate').value), 0, 100);
-
-            let totalMod = 1.0;
-            document.querySelectorAll('#modifier-list .mod-val').forEach(input => {
-                totalMod *= Number(input.value);
-            });
-
-            let baseWithoutRand = (a * b) / (0.7 * d + 70) * totalMod;
-
-            function getDmgTuple(factor) {
-                let norm = clampDamage(Math.floor(baseWithoutRand * factor), unlock);
-                let crit = clampDamage(Math.floor(Math.floor(baseWithoutRand * factor) * critModifier), unlock);
-                return { norm, crit };
-            }
-
-            let d095 = getDmgTuple(0.95);
-            let d100 = getDmgTuple(1.00);
-            let d105 = getDmgTuple(1.05);
-
-            document.getElementById('p-normal-min').textContent = d095.norm;
-            document.getElementById('p-normal-normal').textContent = d100.norm;
-            document.getElementById('p-normal-max').textContent = d105.norm;
-
-            document.getElementById('p-crit-min').textContent = d095.crit;
-            document.getElementById('p-crit-normal').textContent = d100.crit;
-            document.getElementById('p-crit-max').textContent = d105.crit;
-
-            // 確率データのクリアと再集計
-            globalDamageWeights = {};
-            globalLoopCount = 0;
-            
-            let w_normal = (100 - critRate) / 100;
-            let w_crit = critRate / 100;
-
-            for (let i = 950000; i <= 1050000; i++) {
-                let r = i / 1000000;
-                let baseDmg = Math.floor(baseWithoutRand * r);
-                
-                if (w_normal > 0) {
-                    let dNorm = clampDamage(baseDmg, unlock);
-                    globalDamageWeights[dNorm] = (globalDamageWeights[dNorm] || 0) + w_normal;
-                }
-                if (w_crit > 0) {
-                    let dCrit = clampDamage(Math.floor(baseDmg * critModifier), unlock);
-                    globalDamageWeights[dCrit] = (globalDamageWeights[dCrit] || 0) + w_crit;
-                }
-                globalLoopCount++;
-            }
-
-            let sortedDamages = Object.keys(globalDamageWeights).map(Number).sort((x, y) => x - y);
-            let tableHtml = "";
-
-            sortedDamages.forEach(dmg => {
-                let weight = globalDamageWeights[dmg];
-                let percentage = ((weight / globalLoopCount) * 100).toFixed(3);
-                if (parseFloat(percentage) > 0) {
-                    tableHtml += `<tr><td>${dmg}</td><td>${percentage}%</td></tr>`;
-                }
-            });
-
-            document.getElementById('detail-list').innerHTML = tableHtml;
-
-            // シミュレーター数値を現在のステータスに合わせて再計算
-            updateTargetProbabilities();
-        }
-
-        // ★★★ ピンポイント確率シミュレーション用関数 ★★★
-        function updateTargetProbabilities() {
-            if (!globalLoopCount) return;
-
-            const aboveVal = Number(document.getElementById('calc-above-input').value);
-            const belowVal = Number(document.getElementById('calc-below-input').value);
-            const rangeMin = Number(document.getElementById('calc-range-min').value);
-            const rangeMax = Number(document.getElementById('calc-range-max').value);
-
-            let weightAbove = 0;
-            let weightBelow = 0;
-            let weightRange = 0;
-
-            Object.keys(globalDamageWeights).forEach(dmgStr => {
-                const dmg = Number(dmgStr);
-                const weight = globalDamageWeights[dmgStr];
-
-                if (dmg >= aboveVal) weightAbove += weight;
-                if (dmg <= belowVal) weightBelow += weight;
-                if (dmg >= rangeMin && dmg <= rangeMax) weightRange += weight;
-            });
-
-            document.getElementById('calc-above-res').textContent = ((weightAbove / globalLoopCount) * 100).toFixed(3);
-            document.getElementById('calc-below-res').textContent = ((weightBelow / globalLoopCount) * 100).toFixed(3);
-            document.getElementById('calc-range-res').textContent = ((weightRange / globalLoopCount) * 100).toFixed(3);
-        }
-
-        calculateAll();
-    </script>
-
-</body>
-</html>
+onModeChange();
+calculateAll();
+</script>
