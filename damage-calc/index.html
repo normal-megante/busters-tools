@@ -150,6 +150,27 @@
                 <span class="suffix">%</span>
             </div>
         </div>
+        <!-- スナイパー(距離クリティカル): B-USAピョン/USAピョンの通常攻撃専用 -->
+        <div class="input-group" style="margin-bottom:4px;">
+            <label for="sniper-on" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input type="checkbox" id="sniper-on" onchange="updateSniper()"> スナイパー(距離クリティカル)
+            </label>
+        </div>
+        <div id="sniper-box" hidden style="margin:0 0 10px; padding:10px 12px; background:#f5faff; border:1px solid #d6ecff; border-radius:8px;">
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span style="font-size:13px; white-space:nowrap;">敵との距離</span>
+                <input type="range" id="sniper-dist" min="0" max="80" step="1" value="80" oninput="updateSniper(false)" style="flex:1; min-width:130px;">
+                <input type="number" id="sniper-dist-num" min="0" max="80" step="1" value="80" oninput="updateSniper(true)" style="width:64px;">
+                <span style="font-size:12px; color:#888; white-space:nowrap;">/ 80(最大)</span>
+            </div>
+            <div style="margin-top:8px; font-size:13px;">
+                距離ボーナス: <b id="sniper-bonus" style="color:#0066cc;">+50.0</b>
+                <span style="color:#888;"> → この距離での合計会心率 <b id="sniper-total" style="color:#0066cc;">60.0%</b></span>
+            </div>
+            <p class="note-mini" style="margin-top:6px;">会心率 += <b>50 × clamp(距離, 0, 80) ÷ 80</b>(密着=+0、80以上で+50頭打ち)。
+            距離はゲーム内部単位(80 ≈ 通常の交戦レンジの端)。<b>通常攻撃(ビームショット/チャージショット等)のみ</b>。
+            必殺技(ゲットBランチャー等)には乗りません。上の「クリティカル率」がわざ固有値(通常10)です。</p>
+        </div>
         <p class="note-mini">会心率 = <b>わざ固有値</b>(プレイヤーの通常わざ・必殺技はほぼ10、爆裂・地雷系は0)
         + いっせん20 + 知ったかぶり10 + 魂(Lv別6〜20) + ギャンブラー/ぶようじん30(<b>相手</b>が持っていても+30)
         − 神威丸4 + アカネコ/シロイヌ25(対象族のみ)。
@@ -182,7 +203,7 @@
         </div>
         <div class="dynamic-container">
             <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                <span style="font-size:12px; font-weight:bold; color:#666;">自由な補正倍率(ミッション補正など)</span>
+                <span style="font-size:12px; font-weight:bold; color:#666;">自由な補正倍率(○倍)</span>
                 <button class="btn-add" onclick="addModifierRow()">＋ 追加</button>
             </div>
             <div id="modifier-list"></div>
@@ -282,7 +303,7 @@
 
     <div class="footer-credits">
         参考元:<a href="https://docs.google.com/spreadsheets/d/1-u5YHsx02AJx9fr_-JwL1x6Pq3kwTBoxIxVEOS-Pb-U" target="_blank" rel="noopener">J4th7th 様</a> / <a href="https://togenyanweb.appspot.com/Yokai/" target="_blank" rel="noopener">togenyan 様</a><br>
-        Special Thanks: Gemini (AI) , Claude (AI)<br>
+        Special Thanks: Gemini , Claude (AI)<br>
         実機bit再現エンジン: code.bin解析(計算関数 VA 0x3BB4E8 / 乱数 0x13D79C)に基づく
     </div>
 </div>
@@ -610,7 +631,7 @@ function readAll(){
         guard: Number(document.getElementById('guard-select').value),
         guardBoost: num('guard-boost'),
         dmgCut: num('dmg-cut'), dmgUp: num('dmg-up'),
-        critMult, critRate: heal ? 0 : clamp(num('crit-rate'), 0, 300),
+        critMult, critRate: heal ? 0 : clamp(num('crit-rate') + sniperBonus(), 0, 300),
         mods, slays,
         unlock: document.getElementById('unlock-limit').checked,
     };
@@ -626,7 +647,25 @@ function fmtFrac(count){
     return "≈1/" + Math.round(TOTAL / count).toLocaleString();
 }
 
+// スナイパー(距離クリティカル): 会心率 += f32( f32(50×距離) ÷ 80 )。ROMのビット順を再現。
+function sniperBonus(){
+    if (!document.getElementById('sniper-on').checked) return 0;
+    const d = clamp(Number(document.getElementById('sniper-dist').value) || 0, 0, 80);
+    return F(F(50 * d) / 80);
+}
+function updateSniper(fromNum){
+    const on = document.getElementById('sniper-on').checked;
+    document.getElementById('sniper-box').hidden = !on;
+    const s = document.getElementById('sniper-dist'), n = document.getElementById('sniper-dist-num');
+    if (fromNum) { s.value = clamp(Number(n.value) || 0, 0, 80); } else { n.value = s.value; }
+    const b = sniperBonus();
+    const base = clamp(Number(document.getElementById('crit-rate').value) || 0, 0, 300);
+    document.getElementById('sniper-bonus').textContent = '+' + b.toFixed(1);
+    document.getElementById('sniper-total').textContent = clamp(base + b, 0, 300).toFixed(1) + '%';
+}
+
 function calculateAll(){
+    updateSniper();
     const p = readAll();
     const d0N = preRand(p, false);
     const d0C = preRand(p, true);
