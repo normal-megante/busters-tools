@@ -70,7 +70,7 @@
 <div class="box">
     <h1>バスターズ ダメージ計算機</h1>
     <p class="sub">実機再現版 — 3DSと同じfloat32演算・乱数16,777,216通りを厳密集計<br>
-    <span id="build-ver">build 2026-07-18 (9) — モード別表示切替版</span></p>
+    <span id="build-ver">build 2026-08-02 (10) — 装備・レベル制限からのステータス組み立て対応</span></p>
 
     <h2>1. 攻撃力関係</h2>
     <div class="input-group radio-group">
@@ -86,6 +86,91 @@
         <label for="stat-magic">ようりょく:</label>
         <input type="number" id="stat-magic" value="">
     </div>
+
+    <!-- ============ 装備・レベル制限からステータスを組み立てる ============ -->
+    <details id="sb-box" style="margin:6px 0 12px; border:1px solid #d6ecff; border-radius:8px; background:#f5faff; padding:8px 10px;">
+        <summary style="font-size:13px; color:#0066cc; cursor:pointer; font-weight:bold;">▶ 装備・レベル制限からステータスを計算する</summary>
+
+        <p class="note-mini" style="margin-top:8px;">実機の合成順どおりに<b>攻撃する側のちから・ようりょく</b>を組み立てます。<b>①レベル制限で妖怪のレベルが下がる → ②素ステータス → ③装備補正(ランクと制限レベルで倍率) → ④ステータス連動スキル/魂を加算</b>。バフ・デバフはこの下の「攻撃力のバフ・デバフ」欄で別に入れてください(実機でも最後に%で乗ります)。
+        <br>※ 攻撃する側のまもり・HPはダメージ計算には使いません(「2. 相手のまもり」は<b>相手の値</b>を入れてください)。まもり・HPを聞くのは「だんりょく」「第八三途丸のＢ魂」を選んだときだけです。</p>
+
+        <div class="input-group">
+            <label for="sb-cap">ミッションのレベル制限:</label>
+            <select id="sb-cap"></select>
+        </div>
+        <div class="input-group">
+            <label for="sb-lv">妖怪のレベル:</label>
+            <input type="number" id="sb-lv" value="99" min="1" max="99">
+        </div>
+        <p class="note-mini" id="sb-lvnote">—</p>
+
+        <div class="input-group radio-group">
+            <label><input type="radio" name="sb-src" value="direct" checked> 素ステータスを直接入力</label>
+            <label><input type="radio" name="sb-src" value="species"> 種族値から計算</label>
+        </div>
+
+        <div id="sb-direct">
+            <div class="input-group"><label for="sb-d1">素のちから:</label><input type="number" id="sb-d1" value="0"></div>
+            <div class="input-group"><label for="sb-d2">素のようりょく:</label><input type="number" id="sb-d2" value="0"></div>
+            <p class="note-mini">「素」=装備なしの値。レベル制限があるときは<b>制限レベルのときの値</b>を入れてください(下の「種族値から計算」を使えば自動です)。</p>
+        </div>
+
+        <div id="sb-species" hidden>
+            <p class="note-mini">攻略DBの妖怪ページにある<b>種族値A(Lv1)・種族値B(Lv99)</b>と個体値を入れてください。順は HP/ちから/ようりょく/まもり。</p>
+            <div class="input-group"><label>種族値A:</label>
+                <span><input type="number" id="sb-a0" value="0" style="width:62px"><input type="number" id="sb-a1" value="0" style="width:62px"><input type="number" id="sb-a2" value="0" style="width:62px"><input type="number" id="sb-a3" value="0" style="width:62px"></span></div>
+            <div class="input-group"><label>種族値B:</label>
+                <span><input type="number" id="sb-b0" value="0" style="width:62px"><input type="number" id="sb-b1" value="0" style="width:62px"><input type="number" id="sb-b2" value="0" style="width:62px"><input type="number" id="sb-b3" value="0" style="width:62px"></span></div>
+            <div class="input-group"><label>個体値:</label>
+                <span><input type="number" id="sb-v0" value="0" style="width:62px"><input type="number" id="sb-v1" value="0" style="width:62px"><input type="number" id="sb-v2" value="0" style="width:62px"><input type="number" id="sb-v3" value="0" style="width:62px"></span></div>
+            <p class="note-mini">個体値は HP÷2 + ちから + ようりょく + まもり = 40 になります。</p>
+        </div>
+
+        <div class="input-group"><label for="sb-rank">装備のランク:</label>
+            <select id="sb-rank"><option value="0">装備なし</option><option value="1">ランク1</option><option value="2">ランク2</option><option value="3">ランク3</option><option value="4">ランク4</option><option value="5" selected>ランク5</option><option value="6">ランク6</option></select>
+        </div>
+        <div class="input-group"><label for="sb-e1">装備のちから:</label><input type="number" id="sb-e1" value="0"></div>
+        <div class="input-group"><label for="sb-e2">装備のようりょく:</label><input type="number" id="sb-e2" value="0"></div>
+        <p class="note-mini">装備ページの表示値をそのまま入れてください(マイナスもそのまま)。倍率は<b>ランクと制限レベルだけ</b>で決まり、妖怪のレベルは関係ありません。</p>
+
+        <div class="dynamic-container" style="margin-top:6px;">
+            <span style="font-size:12px; font-weight:bold; color:#666;">ステータス連動スキル・Ｂ魂</span>
+            <div style="margin-top:6px; font-size:13px; line-height:1.9;">
+                <label><input type="checkbox" id="sb-k1"> だんりょく / 黒鬼のＢ魂(まもりが高いほど攻撃力↑ 15%)</label><br>
+                <label><input type="checkbox" id="sb-k2"> 青鬼のＢ魂(ちからが高いほどようりょく↑ 35%)</label><br>
+                <label><input type="checkbox" id="sb-k3"> ミツマタノヅチのＢ魂(ようりょくが高いほどちから↑ 35%)</label><br>
+                <label><input type="checkbox" id="sb-k4"> 第八三途丸のＢ魂(<b>最大HP</b>が多いほど攻撃力↑ 12%・ちからのみ)</label>
+            </div>
+            <p class="note-mini" style="margin-top:4px;">第八三途丸のＢ魂は説明文が「残っているＨＰ」ですが、実装は<b>最大HP参照</b>なので戦闘中に増減しません(実機確認済)。加算先も<b>ちからだけ</b>です。
+            <br>だんりょくと黒鬼のＢ魂を<b>両方</b>持つときにコード上は効果値が合算(15+15=30%)されます。<b>未確認</b>なので必要なときだけチェックしてください。<label style="margin-left:6px"><input type="checkbox" id="sb-k1b"> 両方持ち(30%として計算・未確認)</label></p>
+        </div>
+
+        <!-- ステ連動スキルを使うときだけ必要になる「攻撃する側の」まもり・HP -->
+        <div id="sb-extra" hidden style="margin-top:8px; padding:8px 10px; background:#fffdf3; border:1px solid #ffe8b3; border-radius:6px;">
+            <p class="note-mini" style="margin-top:0;"><b>上のスキルの計算にだけ使う値</b>です(ダメージ計算そのものには使いません)。</p>
+            <div id="sb-extra-def" hidden>
+                <div class="input-group" id="sb-row-d3"><label for="sb-d3">攻撃する側の素のまもり:</label><input type="number" id="sb-d3" value="0"></div>
+                <div class="input-group"><label for="sb-e3">その装備のまもり:</label><input type="number" id="sb-e3" value="0"></div>
+            </div>
+            <div id="sb-extra-hp" hidden>
+                <div class="input-group" id="sb-row-d0"><label for="sb-d0">攻撃する側の素のHP:</label><input type="number" id="sb-d0" value="0"></div>
+                <div class="input-group"><label for="sb-e0">その装備のHP:</label><input type="number" id="sb-e0" value="0"></div>
+            </div>
+        </div>
+
+        <table class="detail-table" style="margin-top:10px; width:100%;">
+            <thead><tr><th></th><th>ちから</th><th>ようりょく</th></tr></thead>
+            <tbody>
+                <tr><td>素ステータス</td><td id="sb-r-b1">-</td><td id="sb-r-b2">-</td></tr>
+                <tr><td>装備補正(制限後)</td><td id="sb-r-e1">-</td><td id="sb-r-e2">-</td></tr>
+                <tr><td>ステ連動の加算</td><td id="sb-r-s1">-</td><td id="sb-r-s2">-</td></tr>
+                <tr style="font-weight:bold;"><td>合計</td><td id="sb-r-t1">-</td><td id="sb-r-t2">-</td></tr>
+            </tbody>
+        </table>
+        <p class="note-mini" id="sb-kinfo">—</p>
+        <p class="note-mini" id="sb-skinfo" hidden>—</p>
+        <button class="btn-add" style="margin-top:6px;" onclick="sbApply()">▲ この値を上の「ちから/ようりょく」に入れる</button>
+    </details>
 
     <div class="dynamic-container">
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
@@ -777,6 +862,125 @@ document.addEventListener("wheel", (e) => {
         e.preventDefault();
     }
 }, { passive: false });
+
+/* ============================================================
+   装備・レベル制限からステータスを組み立てる (ROMコード再現)
+   ・レベル制限 = ミッションのレベル上限。妖怪Lvがこれを超えると制限値まで下がる
+   ・装備補正 = trunc0( 表示値 × k )   k = (A + B×(制限Lv−5)) × 0.01   ※全て単精度
+     テーブル(月兎組 VA 0x0064AE88 / 赤猫団 0x0061CD44) の実値をそのまま持つ
+   ・ステ連動スキル/魂は「素ステ+装備」を基準に加算(バフより前)
+   ============================================================ */
+const C32 = bitsF(0x3C272F05);                 // float32(1/98) キャラ成長式の係数
+const EQTBL = [                                 // [解除Lv, A, B, C]
+    {u:1,  A:0,     B:0,    C:1},
+    {u:26, A:45.92, B:2.08, C:0},
+    {u:51, A:28.6,  B:1.4,  C:0},
+    {u:71, A:19.86, B:1.14, C:0},
+    {u:91, A:17.99, B:1.01, C:0},
+    {u:91, A:54.5,  B:0.5,  C:0}
+];
+const EQ_CAPS = [18,21,25,29,31,33,34,35,36,37,38,42,43,46,47,49,50,54,57,60,62,63,66,68,69,72,76,79,81,83,85,88,90,92,93,95];
+function eqIdx(rank, L){ let i = rank - 1; if (i === 5) i = 4; if (i === 4 && L >= 71) i = 5; return i; }
+function eqK(rank, L){                          // null = 無制限(等倍)
+    if (!rank || rank < 1 || rank > 6) return null;
+    if (L <= 5) return null;
+    const e = EQTBL[eqIdx(rank, L)];
+    if (e.u <= L) return null;
+    return F(e.C + F(F(e.A + F(e.B * F(L - 5))) * C001));
+}
+function eqVal(disp, rank, L){
+    const k = eqK(rank, L);
+    if (k === null) return disp | 0;
+    return Math.trunc(F(disp * k));
+}
+const sbEl = id => document.getElementById(id);
+const sbNum = id => { const e = sbEl(id); return e ? (Number(e.value) || 0) : 0; };
+function sbCalcStat(a, b, lv, iv){ return Math.trunc(F(a + F(F(C32 * F(lv - 1)) * F(iv + b - a)))); }
+
+function sbUpdate(){
+    if (!sbEl('sb-cap')) return;
+    const cap = Number(sbEl('sb-cap').value) || 0;
+    const lv  = Math.max(1, Math.min(99, sbNum('sb-lv') || 1));
+    const eff = (cap > 0 && lv > cap) ? cap : lv;          // 実際に戦うレベル
+    sbEl('sb-lvnote').textContent = cap === 0
+        ? `レベル制限なし → Lv${lv} のまま・装備も表示値どおり。`
+        : (lv > cap ? `Lv${lv} → 制限で <b>Lv${cap}</b> に下がります。` : `Lv${lv} は制限Lv${cap}以下なのでレベルはそのまま(装備の倍率は制限Lv${cap}で決まります)。`);
+    sbEl('sb-lvnote').innerHTML = sbEl('sb-lvnote').textContent;
+
+    const useSp = document.querySelector('input[name="sb-src"]:checked').value === 'species';
+    sbEl('sb-direct').hidden = useSp;
+    sbEl('sb-species').hidden = !useSp;
+
+    // ステ連動スキルを使うときだけ「攻撃する側の」まもり・HPを聞く(種族値モードなら自動)
+    const needDef = sbEl('sb-k1').checked, needHp = sbEl('sb-k4').checked;
+    sbEl('sb-extra').hidden     = !(needDef || needHp);
+    sbEl('sb-extra-def').hidden = !needDef;
+    sbEl('sb-extra-hp').hidden  = !needHp;
+    sbEl('sb-row-d3').hidden    = useSp;   // 種族値モードなら素のまもり/HPは自動
+    sbEl('sb-row-d0').hidden    = useSp;
+
+    // ① 素ステータス(HP,ちから,ようりょく,まもり)
+    let base;
+    if (useSp) base = [0,1,2,3].map(k => sbCalcStat(sbNum('sb-a'+k), sbNum('sb-b'+k), eff, sbNum('sb-v'+k)));
+    else       base = [sbNum('sb-d0'), sbNum('sb-d1'), sbNum('sb-d2'), sbNum('sb-d3')];
+
+    // ② 装備補正(レベル制限の倍率つき)
+    const rank = Number(sbEl('sb-rank').value) || 0;
+    const disp = [sbNum('sb-e0'), sbNum('sb-e1'), sbNum('sb-e2'), sbNum('sb-e3')];
+    const eqL  = (cap > 0) ? cap : 0;
+    const eq   = disp.map(d => (rank ? eqVal(d, rank, eqL) : 0));
+    const k    = rank ? eqK(rank, eqL) : null;
+    sbEl('sb-kinfo').innerHTML = rank
+        ? (k === null ? `装備の倍率: <b>100%</b>(制限なし／解除レベル以上)` :
+           `装備の倍率: <b>${(k*100).toFixed(2)}%</b>(ランク${rank} × 制限Lv${eqL}。ランク${rank}の解除レベルは Lv${EQTBL[eqIdx(rank,eqL)].u})`)
+        : "装備なし";
+
+    // ③ 素+装備 (0以下は1)
+    const st = [0,1,2,3].map(i => Math.max(1, base[i] + eq[i]));
+
+    // ④ ステータス連動スキル/魂 (基準値=st から計算して加算)
+    // ※ステ連動だけは 0x13C3B0 = ceilf(切り上げ)。素ステ・装備補正の切り捨てとは逆なので注意
+    let addPow = 0, addMag = 0;
+    const notes = [];
+    if (sbEl('sb-k2').checked) addMag += Math.ceil(F(st[1] * F(35 * C001)));                        // ちから→ようりょく
+    if (sbEl('sb-k3').checked) addPow += Math.ceil(F(st[2] * F(35 * C001)));                        // ようりょく→ちから
+    if (sbEl('sb-k1').checked){                                                                     // まもり→攻撃力
+        const v = sbEl('sb-k1b').checked ? 30 : 15;                                                 // 重複所持は効果値を合算(未確認)
+        const d = Math.ceil(F(F(st[3] * F(v * C001)) * F(0.5)));
+        addPow += d; addMag += d;
+        notes.push(`だんりょく/黒鬼: 攻撃する側のまもり <b>${st[3]}</b>(装備込み) × ${v}% × 0.5 を<b>切り上げ</b> → ちから・ようりょくに +${d}`);
+    }
+    if (sbEl('sb-k4').checked){                                                                     // 最大HP→攻撃力(ちからのみ)
+        const d = Math.ceil(F(st[0] * F(12 * C001)));
+        addPow += d;
+        notes.push(`第八三途丸: 最大HP <b>${st[0]}</b>(装備込み) × 12% を<b>切り上げ</b> → ちからに +${d}(ようりょくには乗りません)`);
+    }
+    sbEl('sb-skinfo').hidden = notes.length === 0;
+    sbEl('sb-skinfo').innerHTML = notes.join("<br>");
+
+    const tot = [st[0], st[1] + addPow, st[2] + addMag, st[3]];
+    for (const i of [1, 2]){
+        sbEl('sb-r-b'+i).textContent = base[i];
+        sbEl('sb-r-e'+i).textContent = (eq[i] > 0 ? "+" : "") + eq[i];
+        sbEl('sb-r-t'+i).textContent = tot[i];
+    }
+    sbEl('sb-r-s1').textContent = (addPow > 0 ? "+" : "") + addPow;
+    sbEl('sb-r-s2').textContent = (addMag > 0 ? "+" : "") + addMag;
+    window.__sbTotal = tot;
+}
+function sbApply(){
+    const t = window.__sbTotal; if (!t) return;
+    sbEl('stat-power').value = t[1];
+    sbEl('stat-magic').value = t[2];
+    calculateAll();
+}
+(function sbInit(){
+    const sel = sbEl('sb-cap'); if (!sel) return;
+    sel.innerHTML = '<option value="0">制限なし</option>' + EQ_CAPS.map(L => `<option value="${L}">Lv${L}</option>`).join("");
+    sbEl('sb-box').addEventListener('input', sbUpdate);
+    sbEl('sb-box').addEventListener('change', sbUpdate);
+    sbUpdate();
+})();
 
 onModeChange();
 calculateAll();
